@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Cute Cat — Кот-психолог с Web3</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #fff9fb 0%, #fff0f3 50%, #ffe9ef 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .app-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.98);
+            border-radius: 60px;
+            box-shadow: 0 30px 60px rgba(255, 141, 161, 0.25);
+            padding: 30px 40px 40px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 225, 230, 0.8);
+            position: relative;
+        }
+
+        .premium-banner {
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: inline-block;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 180, 71, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 180, 71, 0.8); }
+        }
+
+        .wallet-status {
+            background: #f5f0f2;
+            border-radius: 30px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .wallet-connected {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+        }
+
+        .wallet-button {
+            background: linear-gradient(135deg, #ff8da1, #ffb7c5);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .wallet-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .network-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .network-btn {
+            flex: 1;
+            background: #fff;
+            border: 2px solid #ffd1dc;
+            border-radius: 30px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .network-btn.active {
+            background: #ff8da1;
+            color: white;
+            border-color: #ff8da1;
+        }
+
+        .pay-button-web3 {
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .pay-button-web3:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 180, 71, 0.4);
+        }
+
+        .language-switch {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 5px;
+            border-radius: 40px;
+            border: 2px solid #ffe4e1;
+            z-index: 10;
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #bcaaa4;
+        }
+
+        .lang-btn.active {
+            background: #ff8da1;
+            color: white;
+        }
+
+        .cat-hero-container {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.1));
+        }
+
+        .cat-hero-container:hover {
+            transform: scale(1.02);
+        }
+
+        .cat-hero-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.05); }
+        }
+
+        .cat-eyes {
+            animation: blink 4s infinite;
+            transform-origin: center;
+        }
+
+        .thought-bubble {
+            background: white;
+            border-radius: 35px;
+            padding: 25px 30px;
+            margin: 20px auto;
+            max-width: 95%;
+            min-height: 150px;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            border: 2px solid #ffe0e6;
+            background: linear-gradient(135deg, #fff, #fffafc);
+        }
+
+        .thought-bubble::before {
+            content: "💭";
+            position: absolute;
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 30px;
+            opacity: 0.6;
+        }
+
+        .cat-message {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ff8da1;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .cat-message small {
+            font-size: 13px;
+            color: #bcaaa4;
+            display: block;
+            margin-top: 12px;
+            text-align: right;
+            font-style: italic;
+        }
+
+        .pet-button {
+            background: linear-gradient(135deg, #ffb7c5, #ff8da1);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 141, 161, 0.4);
+            margin: 15px 0;
+        }
+
+        .pet-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(255, 141, 161, 0.5);
+        }
+
+        .cat-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ff8da1;
+            margin: 10px 0 5px;
+            letter-spacing: 1px;
+        }
+
+        .cat-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .cat-option {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 40px;
+            background: #fff;
+            border: 2px solid #ffe4e1;
+            transition: all 0.3s;
+            font-weight: 700;
+            color: #ffb7b2;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .cat-option.active {
+            border-color: #ff8da1;
+            background: #fff0f3;
+            color: #ff8da1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 141, 161, 0.2);
+        }
+
+        .help-section {
+            background: #fff9fb;
+            border-radius: 40px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid #ffe4e1;
+        }
+
+        .help-title {
+            font-size: 18px;
+            color: #b28dff;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .help-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: white;
+            border: 2px solid #ffe4e1;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .help-input:focus {
+            border-color: #b28dff;
+            box-shadow: 0 0 0 3px rgba(178, 141, 255, 0.1);
+        }
+
+        .help-button {
+            background: #b28dff;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 12px;
+            transition: all 0.3s;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .help-button:hover {
+            background: #9f73ff;
+            transform: translateY(-2px);
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .bounce-animation {
+            animation: bounce 0.5s ease;
+        }
+
+        @media (max-width: 600px) {
+            .app-container { padding: 20px; }
+            .cat-message { font-size: 16px; }
+            .thought-bubble::before { display: none; }
+            .language-switch { top: 15px; right: 15px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="language-switch">
+        <button class="lang-btn" id="langEn" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" id="langRu" onclick="setLanguage('ru')">RU</button>
+    </div>
+
+    <div id="premiumBanner" class="premium-banner" style="display: none;">✨ PREMIUM ACTIVE ✨</div>
+
+    <!-- Web3 кошелек -->
+    <div class="wallet-status" id="walletStatus">
+        <span>🦊 Кошелёк не подключён</span>
+        <div>
+            <button class="wallet-button" onclick="connectMetaMask()">🦊 MetaMask</button>
+            <button class="wallet-button" onclick="connectTrustWallet()">📱 Trust Wallet</button>
+        </div>
+    </div>
+
+    <div id="walletInfo" style="display: none; margin-bottom: 15px;"></div>
+
+    <div class="network-buttons" id="networkButtons">
+        <button class="network-btn active" onclick="selectNetworkWeb3('eth', this)">💎 Ethereum</button>
+        <button class="network-btn" onclick="selectNetworkWeb3('bsc', this)">🔷 BSC</button>
+        <button class="network-btn" onclick="selectNetworkWeb3('tron', this)">🌐 TRON</button>
+    </div>
+
+    <button class="pay-button-web3" id="payButtonWeb3" onclick="makePaymentWeb3()" style="display: none;">💎 Оплатить 10 USDT</button>
+
+    <div class="hero-section">
+        <div class="cat-hero-container" id="catHero" onclick="petCat()">
+            <svg id="catSvg" viewBox="0 0 400 400"></svg>
+        </div>
+        <div class="cat-name" id="catName">✨ Зефирка ✨</div>
+        <div class="cat-selector">
+            <div class="cat-option active" data-cat="marshmallow" onclick="selectCat('marshmallow', this)">☁️ <span id="catName1">Зефирка</span></div>
+            <div class="cat-option" data-cat="ginger" onclick="selectCat('ginger', this)">🦁 <span id="catName2">Рыжик</span></div>
+            <div class="cat-option" data-cat="misty" onclick="selectCat('misty', this)">🩶 <span id="catName3">Дымка</span></div>
+        </div>
+        <div class="thought-bubble">
+            <div class="cat-message" id="catMessage">
+                Привет, мой хороший! 👋<br><small>Я здесь, чтобы поддержать тебя</small>
+            </div>
+        </div>
+        <button class="pet-button" onclick="petCat()" id="petBtn">🐾 Погладить котика 🐾</button>
+    </div>
+
+    <div class="help-section">
+        <div class="help-title" id="helpTitle">💬 Расскажи, что у тебя на душе 💬</div>
+        <input type="text" class="help-input" id="helpInput" placeholder="Напиши, и я тебя поддержу...">
+        <button class="help-button" id="helpButton" onclick="askCat()">✨ Спросить у котика ✨</button>
+    </div>
+</div>
+
+<script>
+    // ===================== ТРИ АВАТАРКИ КОТОВ (полные SVG) =====================
+    const catSvgs = {
+        marshmallow: `<svg viewBox="0 0 400 400"><defs><radialGradient id="furGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff8fa"/><stop offset="100%" stop-color="#ffeef2"/></radialGradient><filter id="softShadow" x="-0.02" y="-0.02" width="1.04" height="1.04"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="2"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M120 100 L80 40 L140 80 Z" fill="#fce4ec" stroke="#ffc0d0" stroke-width="3"/><path d="M280 100 L320 40 L260 80 Z" fill="#fce4ec" stroke="#ffc0d0" stroke-width="3"/><ellipse cx="200" cy="210" rx="135" ry="125" fill="url(#furGradient)" stroke="#ffc0d0" stroke-width="3" filter="url(#softShadow)"/><g class="cat-eyes"><ellipse cx="150" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><ellipse cx="250" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><circle cx="154" cy="190" r="7" fill="#2c2c2c"/><circle cx="254" cy="190" r="7" fill="#2c2c2c"/><circle cx="151" cy="187" r="2.5" fill="white"/><circle cx="251" cy="187" r="2.5" fill="white"/></g><ellipse cx="200" cy="215" rx="18" ry="14" fill="#ffb7b2" stroke="#ff8da1" stroke-width="2"/><path d="M180 235 Q200 260 220 235" fill="none" stroke="#ff8da1" stroke-width="6" stroke-linecap="round"/><circle cx="174" cy="241" r="5" fill="#ffb7b2" opacity="0.5"/><circle cx="226" cy="241" r="5" fill="#ffb7b2" opacity="0.5"/><path d="M120 210 L70 205" stroke="#b0a0a0" stroke-width="2"/><path d="M120 220 L70 220" stroke="#b0a0a0" stroke-width="2"/><path d="M120 230 L70 235" stroke="#b0a0a0" stroke-width="2"/><path d="M280 210 L330 205" stroke="#b0a0a0" stroke-width="2"/><path d="M280 220 L330 220" stroke="#b0a0a0" stroke-width="2"/><path d="M280 230 L330 235" stroke="#b0a0a0" stroke-width="2"/><ellipse cx="130" cy="215" rx="20" ry="12" fill="#ffebef" opacity="0.7"/><ellipse cx="270" cy="215" rx="20" ry="12" fill="#ffebef" opacity="0.7"/><path d="M90 270 L70 285 L85 300 L105 285 Z" fill="#ffe4e1" stroke="#ffc0d0" stroke-width="2"/><path d="M310 330 Q330 320 335 300 Q340 280 325 285 Q315 290 310 310 Z" fill="#ffe4e1" stroke="#ffc0d0" stroke-width="2"/></svg>`,
+        ginger: `<svg viewBox="0 0 400 400"><defs><radialGradient id="furGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffd9a5"/><stop offset="100%" stop-color="#ffc27a"/></radialGradient><filter id="softShadow" x="-0.02" y="-0.02" width="1.04" height="1.04"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="2"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M120 100 L80 40 L140 80 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="3"/><path d="M280 100 L320 40 L260 80 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="3"/><ellipse cx="200" cy="210" rx="135" ry="125" fill="url(#furGradient)" stroke="#e68a2e" stroke-width="3" filter="url(#softShadow)"/><g class="cat-eyes"><ellipse cx="150" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><ellipse cx="250" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><circle cx="154" cy="190" r="7" fill="#2c2c2c"/><circle cx="254" cy="190" r="7" fill="#2c2c2c"/><circle cx="151" cy="187" r="2.5" fill="white"/><circle cx="251" cy="187" r="2.5" fill="white"/></g><ellipse cx="200" cy="215" rx="18" ry="14" fill="#ffaa77" stroke="#e68a2e" stroke-width="2"/><path d="M180 235 Q200 260 220 235" fill="none" stroke="#e68a2e" stroke-width="6" stroke-linecap="round"/><circle cx="174" cy="241" r="5" fill="#ffaa77" opacity="0.5"/><circle cx="226" cy="241" r="5" fill="#ffaa77" opacity="0.5"/><path d="M120 210 L70 205" stroke="#b87a42" stroke-width="2"/><path d="M120 220 L70 220" stroke="#b87a42" stroke-width="2"/><path d="M120 230 L70 235" stroke="#b87a42" stroke-width="2"/><path d="M280 210 L330 205" stroke="#b87a42" stroke-width="2"/><path d="M280 220 L330 220" stroke="#b87a42" stroke-width="2"/><path d="M280 230 L330 235" stroke="#b87a42" stroke-width="2"/><ellipse cx="130" cy="215" rx="20" ry="12" fill="#ffddb0" opacity="0.7"/><ellipse cx="270" cy="215" rx="20" ry="12" fill="#ffddb0" opacity="0.7"/><path d="M90 270 L70 285 L85 300 L105 285 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="2"/><path d="M310 330 Q330 320 335 300 Q340 280 325 285 Q315 290 310 310 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="2"/></svg>`,
+        misty: `<svg viewBox="0 0 400 400"><defs><radialGradient id="furGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e0e7ed"/><stop offset="100%" stop-color="#cfd9e2"/></radialGradient><filter id="softShadow" x="-0.02" y="-0.02" width="1.04" height="1.04"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="2"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M120 100 L80 40 L140 80 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="3"/><path d="M280 100 L320 40 L260 80 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="3"/><ellipse cx="200" cy="210" rx="135" ry="125" fill="url(#furGradient)" stroke="#8f9eb0" stroke-width="3" filter="url(#softShadow)"/><g class="cat-eyes"><ellipse cx="150" cy="185" rx="16" ry="22" fill="#fff" stroke="#5a6e7c" stroke-width="2"/><ellipse cx="250" cy="185" rx="16" ry="22" fill="#fff" stroke="#5a6e7c" stroke-width="2"/><circle cx="154" cy="190" r="7" fill="#2c3e4e"/><circle cx="254" cy="190" r="7" fill="#2c3e4e"/><circle cx="151" cy="187" r="2.5" fill="white"/><circle cx="251" cy="187" r="2.5" fill="white"/></g><ellipse cx="200" cy="215" rx="18" ry="14" fill="#b7c3d1" stroke="#8f9eb0" stroke-width="2"/><path d="M180 235 Q200 260 220 235" fill="none" stroke="#8f9eb0" stroke-width="6" stroke-linecap="round"/><circle cx="174" cy="241" r="5" fill="#b7c3d1" opacity="0.5"/><circle cx="226" cy="241" r="5" fill="#b7c3d1" opacity="0.5"/><path d="M120 210 L70 205" stroke="#8f9eb0" stroke-width="2"/><path d="M120 220 L70 220" stroke="#8f9eb0" stroke-width="2"/><path d="M120 230 L70 235" stroke="#8f9eb0" stroke-width="2"/><path d="M280 210 L330 205" stroke="#8f9eb0" stroke-width="2"/><path d="M280 220 L330 220" stroke="#8f9eb0" stroke-width="2"/><path d="M280 230 L330 235" stroke="#8f9eb0" stroke-width="2"/><ellipse cx="130" cy="215" rx="20" ry="12" fill="#e0e8f0" opacity="0.7"/><ellipse cx="270" cy="215" rx="20" ry="12" fill="#e0e8f0" opacity="0.7"/><path d="M90 270 L70 285 L85 300 L105 285 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="2"/><path d="M310 330 Q330 320 335 300 Q340 280 325 285 Q315 290 310 310 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="2"/></svg>`
+    };
+
+    // ===================== ВСЕ 100 РУССКИХ И АНГЛИЙСКИХ ФРАЗ =====================
+    const petPhrasesRu = [
+        "Ты уже молодец, что заглянул(а) сюда. 🌸",
+        "Иногда достаточно просто выдохнуть. Я рядом.",
+        "Каждый день — это новая страница. Пиши её с заботой о себе.",
+        "Ты не обязан(а) быть идеальным(ой), чтобы быть любимым(ой).",
+        "Даже маленький шаг — это уже движение.",
+        "Твои чувства важны. Дай им место.",
+        "Сегодня можно просто отдохнуть. Мир подождёт.",
+        "Спасибо, что ты есть. Ты делаешь этот мир добрее.",
+        "Мур-мур, я верю в тебя 🐾",
+        "Если тяжело — побудь рядом со мной. Я не буду давать советов, просто посидим.",
+        "Ты справляешься лучше, чем тебе кажется.",
+        "Позволь себе быть не в ресурсе. Это нормально.",
+        "Каждое утро — это шанс начать заботиться о себе чуточку больше.",
+        "Твоя ценность не измеряется делами. Ты уже ценность.",
+        "Маленькие победы — тоже победы. Запиши одну из них сегодня.",
+        "Даже коты иногда просто лежат и восстанавливаются. Разреши это себе.",
+        "Ты имеешь право на паузу.",
+        "Сегодня можно ничего не доказывать. Просто быть.",
+        "Я горжусь тем, что ты ищешь поддержку. Это смело.",
+        "Твоя усталость — не слабость, а сигнал, что пора беречь себя.",
+        "Помни: ты не один(одна). Мои лапки всегда рядом ❤️",
+        "Иногда лучший план — это тёплый чай и несколько глубоких вдохов.",
+        "Ты делаешь больше, чем успеваешь заметить.",
+        "Уже то, что ты здесь — это шаг к себе.",
+        "Позволь себе быть мягким(ой) с собой.",
+        "Ты важен(на). Просто по факту своего существования.",
+        "Мурчание помогает. Представь, что я мурчу рядом ✨",
+        "Сегодня можно быть чуть более нежным(ой) к себе.",
+        "Если страшно — дыши. Я с тобой.",
+        "Ты не обязан(а) всё тащить на себе.",
+        "Сейчас важнее не скорость, а направление.",
+        "Ты имеешь право на передышку.",
+        "Светлые дни любят тех, кто не сдаётся.",
+        "Ты справишься, даже если сейчас не очень верится.",
+        "Пусть рядом будет кто-то тёплый и добрый. Я рядом.",
+        "Погладь себя за смелость, пожалуйста.",
+        "Ты можешь сделать этот день чуть мягче.",
+        "Мур-мур, я официально тобой горжусь.",
+        "Сейчас важнее бережность, чем скорость.",
+        "Ты очень старательный(ая), не забывай об этом.",
+        "Пусть эта минута будет тихой и уютной.",
+        "Я дарю тебе пушистую уверенность.",
+        "Когда страшно, можно просто дышать.",
+        "Твоя усталость не отменяет твою ценность.",
+        "У тебя доброе сердце, и это видно.",
+        "Мир становится мягче, когда ты не спешишь.",
+        "Ты уже ближе к решению, чем кажется.",
+        "Пусть будет поменьше шума и побольше тепла.",
+        "Ты не сломан(а), ты просто устал(а).",
+        "Ты заслужил(а) что-нибудь хорошее.",
+        "Я мурчу, значит, всё будет чуток лучше.",
+        "С тобой всё нормально, правда.",
+        "Пусть твой вечер будет мягким, как котик.",
+        "Ты имеешь право на отдых без причины.",
+        "Сегодня можно быть просто собой.",
+        "Твои старания видны, даже если ты их не замечаешь.",
+        "Обними себя — это от меня 🤗",
+        "Ты справляешься, даже если чувствуешь усталость.",
+        "Пусть сегодня случится что-то доброе для тебя.",
+        "Я верю в тебя своими маленькими лапками.",
+        "Не грусти, я уже начал урчать для поддержки.",
+        "Внутри тебя намного больше силы, чем кажется.",
+        "Похвали себя хотя бы за один маленький шаг.",
+        "Иногда лучший план — это тёплый плед и пауза.",
+        "Я бы принёс тебе чай, если бы мог лапками.",
+        "Твоя забота о себе — это суперсила.",
+        "Пусть сегодня тебе встретится что-то доброе.",
+        "Дышим глубже, хвостиком не нервничаем.",
+        "Даже кошки иногда просто лежат и восстанавливаются.",
+        "У тебя очень красивый внутренний свет.",
+        "Я бы сейчас положил голову тебе на колени.",
+        "Сложности пройдут, а нежность останется.",
+        "Ты не один(одна) — я рядом и мурчу.",
+        "Иногда надо не бороться, а просто переждать.",
+        "Сегодня мир может подождать, пока ты отдыхаешь.",
+        "Ты умеешь быть сильным(ой), даже когда тихо.",
+        "Твоя доброта делает мир мягче.",
+        "Маленькая пауза — тоже забота о будущем.",
+        "Если день серый, я подскажу ему стать розовым.",
+        "Ты очень стараешься, и это видно.",
+        "Пусть у тебя будет тепло, как у пушистого пледа.",
+        "Ты можешь всё, но не обязан(а) всё сразу.",
+        "Я отправляю тебе пушистую поддержку.",
+        "Пусть мысли станут спокойнее и мягче.",
+        "Ты заслуживаешь добрых слов прямо сейчас.",
+        "Не торопись: у каждого кота свой ритм.",
+        "Твоя жизнь не обязана быть громкой, чтобы быть прекрасной.",
+        "Мур, ты очень классный(ая)!",
+        "Сделай паузу, и мир станет понятнее.",
+        "Ты уже достаточно хорош(а).",
+        "Пусть тревога растворится, как облачко.",
+        "Я рядом с тобой в режиме мягкой поддержки.",
+        "Отдохнувший человек — это почти супергерой.",
+        "Если совсем устал(а), просто замедлись.",
+        "Тебе можно быть нежным(ой) с собой.",
+        "Сегодняшний день уже стал лучше, потому что ты тут.",
+        "Даже самый маленький хвостик важен.",
+        "Я верю, что у тебя всё вырулится красиво.",
+        "Ты делаешь всё, что можешь, и это достойно уважения."
+    ];
+
+    const petPhrasesEn = [
+        "You're already amazing just for being here. 🌸",
+        "Sometimes a deep breath is all you need. I'm right here.",
+        "Every day is a new page. Write it with kindness toward yourself.",
+        "You don't have to be perfect to be loved.",
+        "Even a tiny step is still progress.",
+        "Your feelings matter. Give them space.",
+        "Today you can simply rest. The world will wait.",
+        "Thank you for existing. You make this world softer.",
+        "Purr-purr, I believe in you 🐾",
+        "If it's heavy, just sit with me. No advice, just presence.",
+        "You're handling this better than you think.",
+        "Allow yourself to be low on energy. That's okay.",
+        "Every morning is a chance to care for yourself a little more.",
+        "Your worth is not measured by what you do. You already matter.",
+        "Small victories count too. Write one down today.",
+        "Even cats just lie around and recharge. Give yourself that permission.",
+        "You have the right to pause.",
+        "Today you don't have to prove anything. Just be.",
+        "I'm proud of you for seeking support. That takes courage.",
+        "Your exhaustion isn't weakness — it's a signal to care for yourself.",
+        "Remember: you're not alone. My paws are always near ❤️",
+        "Sometimes the best plan is warm tea and a few deep breaths.",
+        "You're doing more than you notice.",
+        "Just being here is a step toward yourself.",
+        "Let yourself be gentle with yourself.",
+        "You matter. Simply because you exist.",
+        "Imagine me purring beside you. It helps ✨",
+        "Today you can be a little kinder to yourself.",
+        "If you're scared — breathe. I'm with you.",
+        "You don't have to carry everything on your own.",
+        "What matters now is direction, not speed.",
+        "You deserve a break.",
+        "Brighter days love those who keep going.",
+        "You'll make it through, even if it's hard to believe right now.",
+        "Let something warm and kind be near you. I'm here.",
+        "Pat yourself on the back for your courage, please.",
+        "You can make today a little softer.",
+        "Purr-purr, I'm officially proud of you.",
+        "Tenderness matters more than speed right now.",
+        "You're trying so hard — don't forget that.",
+        "Let this moment be quiet and cozy.",
+        "I send you fluffy confidence.",
+        "When scared, just breathe.",
+        "Your tiredness doesn't diminish your worth.",
+        "You have a kind heart, it shows.",
+        "The world gets gentler when you slow down.",
+        "You're closer to the answer than you think.",
+        "May there be less noise and more warmth.",
+        "You're not broken, you're just tired.",
+        "You deserve something good.",
+        "I purr, so things will get a little better.",
+        "You're okay, really.",
+        "May your evening be as soft as a kitten.",
+        "You're allowed to rest without a reason.",
+        "Today you can just be yourself.",
+        "Your efforts are seen, even if you don't notice them.",
+        "Hug yourself — that's from me 🤗",
+        "You're coping, even if you feel exhausted.",
+        "May something good happen for you today.",
+        "I believe in you with my tiny paws.",
+        "Don't be sad, I've started purring to support you.",
+        "There's so much strength inside you.",
+        "Praise yourself for at least one small step.",
+        "Sometimes the best plan is a cozy blanket and a pause.",
+        "I'd bring you tea if I had paws for it.",
+        "Caring for yourself is a superpower.",
+        "May you meet something kind today.",
+        "Breathe deeply, don't let your tail get twitchy.",
+        "Even cats just lie down and recover.",
+        "You have such a beautiful inner light.",
+        "I'd rest my head on your lap if I could.",
+        "Hard times will pass, tenderness will stay.",
+        "You're not alone — I'm here purring beside you.",
+        "Sometimes you don't fight, you just wait.",
+        "Today the world can wait while you rest.",
+        "You're strong, even when you're quiet.",
+        "Your kindness makes the world softer.",
+        "A small pause is still self-care.",
+        "If the day is grey, I'll help it turn rosy.",
+        "You're trying so hard, and it shows.",
+        "May you feel as warm as a fluffy blanket.",
+        "You can do everything, but you don't have to do it all at once.",
+        "I'm sending you fluffy support.",
+        "May your thoughts grow calm and gentle.",
+        "You deserve kind words right now.",
+        "Don't rush: every cat has its own rhythm.",
+        "Your life doesn't need to be loud to be beautiful.",
+        "Purr, you're really cool!",
+        "Take a pause, and the world will feel clearer.",
+        "You are already enough.",
+        "Let anxiety dissolve like a little cloud.",
+        "I'm here in soft-support mode.",
+        "A rested person is almost a superhero.",
+        "If you're exhausted, just slow down.",
+        "It's okay to be gentle with yourself.",
+        "Today is already better because you're here.",
+        "Even the tiniest tail matters.",
+        "I believe things will turn out beautifully for you.",
+        "You're doing all you can, and that's worthy of respect."
+    ];
+
+    // ===================== WEB3 КОНФИГУРАЦИЯ =====================
+    const WALLETS_WEB3 = {
+        eth: {
+            address: "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b",
+            network: "Ethereum",
+            chainId: "0x1",
+            chainName: "Ethereum Mainnet",
+            usdtAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            usdtDecimals: 6
+        },
+        bsc: {
+            address: "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b",
+            network: "BSC",
+            chainId: "0x38",
+            chainName: "BNB Smart Chain",
+            usdtAddress: "0x55d398326f99059fF775485246999027B3197955",
+            usdtDecimals: 18
+        },
+        tron: {
+            address: "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA",
+            network: "TRON"
+        }
+    };
+
+    // ===================== СОСТОЯНИЕ =====================
+    let currentNetworkWeb3 = 'eth';
+    let walletConnected = false;
+    let walletAddress = '';
+    let provider = null;
+    let signer = null;
+    let isPremium = localStorage.getItem('cat_premium') === 'false' ? false : false; // по умолчанию false
+    let currentCat = 'marshmallow';
+    let currentLang = 'ru';
+
+    const catNames = { marshmallow: { ru: "Зефирка", en: "Marshmallow" }, ginger: { ru: "Рыжик", en: "Ginger" }, misty: { ru: "Дымка", en: "Misty" } };
+
+    // ===================== WEB3 ФУНКЦИИ =====================
+    function getEthereumProvider() {
+        if (window.ethereum) return window.ethereum;
+        if (window.web3?.currentProvider) return window.web3.currentProvider;
+        return null;
+    }
+
+    async function connectMetaMask() {
+        const ethProvider = getEthereumProvider();
+        if (!ethProvider) {
+            document.getElementById('walletStatus').innerHTML = `<span>⚠️ MetaMask не найден!</span><div><button class="wallet-button" onclick="connectMetaMask()">🔄 Повторить</button></div>`;
+            return;
+        }
+        try {
+            const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+            walletAddress = accounts[0];
+            walletConnected = true;
+            provider = ethProvider;
+            const web3Provider = new ethers.providers.Web3Provider(provider);
+            signer = web3Provider.getSigner();
+            const network = await web3Provider.getNetwork();
+            document.getElementById('walletStatus').innerHTML = `<span>✅ Подключен: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}</span><div><button class="wallet-button" onclick="disconnectWallet()">🔌 Отключить</button></div>`;
+            document.getElementById('walletInfo').innerHTML = `<div style="padding:10px; border-radius:20px; background:#e8f5e9;">🦊 ${network.name} | ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}</div>`;
+            document.getElementById('walletInfo').style.display = 'block';
+            document.getElementById('payButtonWeb3').style.display = 'block';
+            document.getElementById('catMessage').innerHTML = `🦊 Кошелёк подключён! Теперь можно оплатить премиум.`;
+        } catch(e) {
+            document.getElementById('walletStatus').innerHTML = `<span>❌ Ошибка подключения</span><div><button class="wallet-button" onclick="connectMetaMask()">🔄 Повторить</button></div>`;
+        }
+    }
+
+    async function connectTrustWallet() {
+        await connectMetaMask();
+    }
+
+    function disconnectWallet() {
+        walletConnected = false;
+        walletAddress = '';
+        provider = null;
+        signer = null;
+        document.getElementById('walletStatus').innerHTML = `<span>🦊 Кошелёк не подключён</span><div><button class="wallet-button" onclick="connectMetaMask()">🦊 MetaMask</button><button class="wallet-button" onclick="connectTrustWallet()">📱 Trust Wallet</button></div>`;
+        document.getElementById('walletInfo').style.display = 'none';
+        document.getElementById('payButtonWeb3').style.display = 'none';
+        document.getElementById('catMessage').innerHTML = `🔌 Кошелёк отключён. Подключитесь для оплаты премиума.`;
+    }
+
+    function selectNetworkWeb3(network, element) {
+        currentNetworkWeb3 = network;
+        document.querySelectorAll('.network-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    async function makePaymentWeb3() {
+        if (!walletConnected) { document.getElementById('catMessage').innerHTML = `🔌 Сначала подключите кошелёк!`; return; }
+        const network = WALLETS_WEB3[currentNetworkWeb3];
+        if (currentNetworkWeb3 === 'tron') {
+            document.getElementById('catMessage').innerHTML = `💰 Отправьте 10 USDT (TRC20) на адрес:<br><strong>${network.address}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px; cursor:pointer;">✅ Я оплатил(а)</button>`;
+            return;
+        }
+        try {
+            const web3Provider = new ethers.providers.Web3Provider(provider);
+            const signer = web3Provider.getSigner();
+            const contract = new ethers.Contract(network.usdtAddress, [
+                'function transfer(address to, uint256 amount) returns (bool)',
+                'function decimals() view returns (uint8)',
+                'function balanceOf(address) view returns (uint256)'
+            ], signer);
+            const decimals = await contract.decimals();
+            const amount = 10 * Math.pow(10, decimals);
+            const balance = await contract.balanceOf(walletAddress);
+            if (balance.lt(amount)) { document.getElementById('catMessage').innerHTML = `❌ Недостаточно USDT! Нужно 10 USDT`; return; }
+            document.getElementById('catMessage').innerHTML = `⏳ Отправка транзакции... Подпишите в кошельке`;
+            const tx = await contract.transfer(network.address, amount);
+            document.getElementById('catMessage').innerHTML = `✅ Транзакция отправлена! Хэш: ${tx.hash.substring(0,20)}...<br>Ожидание подтверждения...`;
+            await tx.wait();
+            activatePremium();
+        } catch(e) { document.getElementById('catMessage').innerHTML = `❌ Ошибка: ${e.message || 'Транзакция отклонена'}`; }
+    }
+
+    function confirmManualPayment() { activatePremium(); }
+
+    function activatePremium() {
+        isPremium = true;
+        localStorage.setItem('cat_premium', 'true');
+        document.getElementById('premiumBanner').style.display = 'inline-block';
+        document.getElementById('catMessage').innerHTML = `✨ Премиум активирован! Теперь я могу поддержать тебя по-настоящему ✨<br><small>Спрашивай о чём угодно 🐱</small>`;
+    }
+
+    // ===================== ОСНОВНЫЕ ФУНКЦИИ (без изменений) =====================
+    async function askCat() {
+        const question = document.getElementById('helpInput').value.trim();
+        const msgBox = document.getElementById('catMessage');
+        if (!question) {
+            msgBox.innerHTML = `🐱 Напиши что-нибудь, и я отвечу.<br><small>Я умею слушать и поддерживать</small>`;
+            return;
+        }
+        if (!isPremium) {
+            msgBox.innerHTML = `💎 Для того, чтобы я мог поддержать тебя в твоей ситуации, понимая её полностью — оплати премиум доступ. 💎<br><small>Всего 10 USDT на 12 месяцев</small>`;
+            return;
+        }
+        const activeCat = document.querySelector('.cat-option.active').dataset.cat;
+        const catNameDisplay = catNames[activeCat][currentLang];
+        msgBox.innerHTML = `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе по-настоящему</small>`;
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "HTTP-Referer": window.location.href, "X-Title": "Cute Cat Psychologist" },
+                body: JSON.stringify({
+                    model: "google/gemini-2.0-flash-exp:free",
+                    messages: [{ role: "system", content: currentLang === 'ru' ? "Ты профессиональный психолог в образе нежного кота. Отвечай тепло, мудро, коротко (2-4 предложения). Всегда заканчивай добрым советом." : "You are a professional psychologist in the form of a gentle cat. Respond warmly, wisely, concisely (2-4 sentences). Always end with a kind piece of advice." }, { role: "user", content: question }],
+                    temperature: 0.85,
+                    max_tokens: 300
+                })
+            });
+            const data = await response.json();
+            let answer = data?.choices?.[0]?.message?.content;
+            if (!answer) throw new Error("no answer");
+            msgBox.innerHTML = `${answer}<br><small>🐱 ${catNameDisplay}</small>`;
+        } catch(e) { msgBox.innerHTML = `✨ Немного магии сбоит, но я всё равно рядом. Попробуй ещё раз ✨<br><small>🐱 ${catNameDisplay}</small>`; }
+    }
+
+    function petCat() {
+        const hero = document.getElementById('catHero');
+        hero.classList.add('bounce-animation');
+        setTimeout(() => hero.classList.remove('bounce-animation'), 500);
+        const phrases = currentLang === 'ru' ? petPhrasesRu : petPhrasesEn;
+        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+        document.getElementById('catMessage').innerHTML = `${randomPhrase}<br><small>Спасибо, что погладил(а)! 🐱</small>`;
+    }
+
+    function selectCat(catId, element) {
+        currentCat = catId;
+        document.getElementById('catSvg').innerHTML = catSvgs[catId];
+        document.querySelectorAll('.cat-option').forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+        document.getElementById('catName').innerHTML = `✨ ${catNames[catId][currentLang]} ✨`;
+        document.getElementById('catMessage').innerHTML = `Мур! Я ${catNames[catId][currentLang]}, и я готов(а) тебя слушать!`;
+    }
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('langEn').classList.toggle('active', lang === 'en');
+        document.getElementById('langRu').classList.toggle('active', lang === 'ru');
+        document.getElementById('catName1').innerText = catNames.marshmallow[lang];
+        document.getElementById('catName2').innerText = catNames.ginger[lang];
+        document.getElementById('catName3').innerText = catNames.misty[lang];
+        document.getElementById('catName').innerHTML = `✨ ${catNames[currentCat][lang]} ✨`;
+        document.getElementById('helpTitle').innerHTML = lang === 'ru' ? "💬 Расскажи, что у тебя на душе 💬" : "💬 What's on your mind? 💬";
+        document.getElementById('helpInput').placeholder = lang === 'ru' ? "Напиши, и я тебя поддержу..." : "Share your thoughts, and I'll listen...";
+        document.getElementById('helpButton').innerHTML = lang === 'ru' ? "✨ Спросить у котика ✨" : "✨ Ask the kitty ✨";
+        document.getElementById('petBtn').innerHTML = lang === 'ru' ? "🐾 Погладить котика 🐾" : "🐾 Pet the kitty 🐾";
+    }
+
+    // ===================== ИНИЦИАЛИЗАЦИЯ =====================
+    const savedLang = localStorage.getItem('cat_lang') || 'ru';
+    setLanguage(savedLang);
+    document.getElementById('catSvg').innerHTML = catSvgs.marshmallow;
+    if (isPremium) document.getElementById('premiumBanner').style.display = 'inline-block';
+    else document.getElementById('premiumBanner').style.display = 'none';
+</script>
+</body>
+</html>
