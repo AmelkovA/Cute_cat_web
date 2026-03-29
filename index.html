@@ -34,6 +34,36 @@
             position: relative;
         }
 
+        /* Фиксированная позиция для переключателя языка, чтобы не мешал */
+        .language-switch {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 5px;
+            border-radius: 40px;
+            border: 2px solid #ffe4e1;
+            z-index: 100;
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #bcaaa4;
+        }
+
+        .lang-btn.active {
+            background: #ff8da1;
+            color: white;
+        }
+
         .premium-banner {
             background: linear-gradient(135deg, #ffd966, #ffb347);
             color: white;
@@ -50,6 +80,12 @@
             50% { box-shadow: 0 0 20px rgba(255, 180, 71, 0.8); }
         }
 
+        /* Web3 блок — фиксированная структура, не ломается при смене языка */
+        .web3-section {
+            margin-top: 60px;
+            margin-bottom: 20px;
+        }
+
         .wallet-status {
             background: #f5f0f2;
             border-radius: 30px;
@@ -61,11 +97,6 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 10px;
-        }
-
-        .wallet-connected {
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
         }
 
         .wallet-button {
@@ -124,35 +155,6 @@
         .pay-button-web3:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(255, 180, 71, 0.4);
-        }
-
-        .language-switch {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            display: flex;
-            gap: 10px;
-            background: white;
-            padding: 5px;
-            border-radius: 40px;
-            border: 2px solid #ffe4e1;
-            z-index: 10;
-        }
-
-        .lang-btn {
-            border: none;
-            background: transparent;
-            padding: 6px 16px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            color: #bcaaa4;
-        }
-
-        .lang-btn.active {
-            background: #ff8da1;
-            color: white;
         }
 
         .cat-hero-container {
@@ -378,24 +380,26 @@
 
     <div id="premiumBanner" class="premium-banner" style="display: none;">✨ PREMIUM ACTIVE ✨</div>
 
-    <!-- Web3 кошелек -->
-    <div class="wallet-status" id="walletStatus">
-        <span>🦊 Кошелёк не подключён</span>
-        <div>
-            <button class="wallet-button" onclick="connectMetaMask()">🦊 MetaMask</button>
-            <button class="wallet-button" onclick="connectTrustWallet()">📱 Trust Wallet</button>
+    <!-- Web3 блок - фиксированная структура -->
+    <div class="web3-section">
+        <div class="wallet-status" id="walletStatus">
+            <span id="walletStatusText">🦊 Wallet not connected</span>
+            <div>
+                <button class="wallet-button" onclick="connectMetaMask()">🦊 MetaMask</button>
+                <button class="wallet-button" onclick="connectTrustWallet()">📱 Trust Wallet</button>
+            </div>
         </div>
+
+        <div id="walletInfo" style="display: none; margin-bottom: 15px;"></div>
+
+        <div class="network-buttons" id="networkButtons">
+            <button class="network-btn active" onclick="selectNetworkWeb3('eth', this)">💎 Ethereum</button>
+            <button class="network-btn" onclick="selectNetworkWeb3('bsc', this)">🔷 BSC</button>
+            <button class="network-btn" onclick="selectNetworkWeb3('tron', this)">🌐 TRON</button>
+        </div>
+
+        <button class="pay-button-web3" id="payButtonWeb3" onclick="makePaymentWeb3()" style="display: none;">💎 Pay 10 USDT</button>
     </div>
-
-    <div id="walletInfo" style="display: none; margin-bottom: 15px;"></div>
-
-    <div class="network-buttons" id="networkButtons">
-        <button class="network-btn active" onclick="selectNetworkWeb3('eth', this)">💎 Ethereum</button>
-        <button class="network-btn" onclick="selectNetworkWeb3('bsc', this)">🔷 BSC</button>
-        <button class="network-btn" onclick="selectNetworkWeb3('tron', this)">🌐 TRON</button>
-    </div>
-
-    <button class="pay-button-web3" id="payButtonWeb3" onclick="makePaymentWeb3()" style="display: none;">💎 Оплатить 10 USDT</button>
 
     <div class="hero-section">
         <div class="cat-hero-container" id="catHero" onclick="petCat()">
@@ -423,14 +427,14 @@
 </div>
 
 <script>
-    // ===================== ТРИ АВАТАРКИ КОТОВ (полные SVG) =====================
+    // ===================== ТРИ АВАТАРКИ КОТОВ =====================
     const catSvgs = {
         marshmallow: `<svg viewBox="0 0 400 400"><defs><radialGradient id="furGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff8fa"/><stop offset="100%" stop-color="#ffeef2"/></radialGradient><filter id="softShadow" x="-0.02" y="-0.02" width="1.04" height="1.04"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="2"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M120 100 L80 40 L140 80 Z" fill="#fce4ec" stroke="#ffc0d0" stroke-width="3"/><path d="M280 100 L320 40 L260 80 Z" fill="#fce4ec" stroke="#ffc0d0" stroke-width="3"/><ellipse cx="200" cy="210" rx="135" ry="125" fill="url(#furGradient)" stroke="#ffc0d0" stroke-width="3" filter="url(#softShadow)"/><g class="cat-eyes"><ellipse cx="150" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><ellipse cx="250" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><circle cx="154" cy="190" r="7" fill="#2c2c2c"/><circle cx="254" cy="190" r="7" fill="#2c2c2c"/><circle cx="151" cy="187" r="2.5" fill="white"/><circle cx="251" cy="187" r="2.5" fill="white"/></g><ellipse cx="200" cy="215" rx="18" ry="14" fill="#ffb7b2" stroke="#ff8da1" stroke-width="2"/><path d="M180 235 Q200 260 220 235" fill="none" stroke="#ff8da1" stroke-width="6" stroke-linecap="round"/><circle cx="174" cy="241" r="5" fill="#ffb7b2" opacity="0.5"/><circle cx="226" cy="241" r="5" fill="#ffb7b2" opacity="0.5"/><path d="M120 210 L70 205" stroke="#b0a0a0" stroke-width="2"/><path d="M120 220 L70 220" stroke="#b0a0a0" stroke-width="2"/><path d="M120 230 L70 235" stroke="#b0a0a0" stroke-width="2"/><path d="M280 210 L330 205" stroke="#b0a0a0" stroke-width="2"/><path d="M280 220 L330 220" stroke="#b0a0a0" stroke-width="2"/><path d="M280 230 L330 235" stroke="#b0a0a0" stroke-width="2"/><ellipse cx="130" cy="215" rx="20" ry="12" fill="#ffebef" opacity="0.7"/><ellipse cx="270" cy="215" rx="20" ry="12" fill="#ffebef" opacity="0.7"/><path d="M90 270 L70 285 L85 300 L105 285 Z" fill="#ffe4e1" stroke="#ffc0d0" stroke-width="2"/><path d="M310 330 Q330 320 335 300 Q340 280 325 285 Q315 290 310 310 Z" fill="#ffe4e1" stroke="#ffc0d0" stroke-width="2"/></svg>`,
         ginger: `<svg viewBox="0 0 400 400"><defs><radialGradient id="furGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffd9a5"/><stop offset="100%" stop-color="#ffc27a"/></radialGradient><filter id="softShadow" x="-0.02" y="-0.02" width="1.04" height="1.04"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="2"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M120 100 L80 40 L140 80 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="3"/><path d="M280 100 L320 40 L260 80 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="3"/><ellipse cx="200" cy="210" rx="135" ry="125" fill="url(#furGradient)" stroke="#e68a2e" stroke-width="3" filter="url(#softShadow)"/><g class="cat-eyes"><ellipse cx="150" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><ellipse cx="250" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><circle cx="154" cy="190" r="7" fill="#2c2c2c"/><circle cx="254" cy="190" r="7" fill="#2c2c2c"/><circle cx="151" cy="187" r="2.5" fill="white"/><circle cx="251" cy="187" r="2.5" fill="white"/></g><ellipse cx="200" cy="215" rx="18" ry="14" fill="#ffaa77" stroke="#e68a2e" stroke-width="2"/><path d="M180 235 Q200 260 220 235" fill="none" stroke="#e68a2e" stroke-width="6" stroke-linecap="round"/><circle cx="174" cy="241" r="5" fill="#ffaa77" opacity="0.5"/><circle cx="226" cy="241" r="5" fill="#ffaa77" opacity="0.5"/><path d="M120 210 L70 205" stroke="#b87a42" stroke-width="2"/><path d="M120 220 L70 220" stroke="#b87a42" stroke-width="2"/><path d="M120 230 L70 235" stroke="#b87a42" stroke-width="2"/><path d="M280 210 L330 205" stroke="#b87a42" stroke-width="2"/><path d="M280 220 L330 220" stroke="#b87a42" stroke-width="2"/><path d="M280 230 L330 235" stroke="#b87a42" stroke-width="2"/><ellipse cx="130" cy="215" rx="20" ry="12" fill="#ffddb0" opacity="0.7"/><ellipse cx="270" cy="215" rx="20" ry="12" fill="#ffddb0" opacity="0.7"/><path d="M90 270 L70 285 L85 300 L105 285 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="2"/><path d="M310 330 Q330 320 335 300 Q340 280 325 285 Q315 290 310 310 Z" fill="#ffcd94" stroke="#e68a2e" stroke-width="2"/></svg>`,
         misty: `<svg viewBox="0 0 400 400"><defs><radialGradient id="furGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e0e7ed"/><stop offset="100%" stop-color="#cfd9e2"/></radialGradient><filter id="softShadow" x="-0.02" y="-0.02" width="1.04" height="1.04"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="2"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M120 100 L80 40 L140 80 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="3"/><path d="M280 100 L320 40 L260 80 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="3"/><ellipse cx="200" cy="210" rx="135" ry="125" fill="url(#furGradient)" stroke="#8f9eb0" stroke-width="3" filter="url(#softShadow)"/><g class="cat-eyes"><ellipse cx="150" cy="185" rx="16" ry="22" fill="#fff" stroke="#5a6e7c" stroke-width="2"/><ellipse cx="250" cy="185" rx="16" ry="22" fill="#fff" stroke="#5a6e7c" stroke-width="2"/><circle cx="154" cy="190" r="7" fill="#2c3e4e"/><circle cx="254" cy="190" r="7" fill="#2c3e4e"/><circle cx="151" cy="187" r="2.5" fill="white"/><circle cx="251" cy="187" r="2.5" fill="white"/></g><ellipse cx="200" cy="215" rx="18" ry="14" fill="#b7c3d1" stroke="#8f9eb0" stroke-width="2"/><path d="M180 235 Q200 260 220 235" fill="none" stroke="#8f9eb0" stroke-width="6" stroke-linecap="round"/><circle cx="174" cy="241" r="5" fill="#b7c3d1" opacity="0.5"/><circle cx="226" cy="241" r="5" fill="#b7c3d1" opacity="0.5"/><path d="M120 210 L70 205" stroke="#8f9eb0" stroke-width="2"/><path d="M120 220 L70 220" stroke="#8f9eb0" stroke-width="2"/><path d="M120 230 L70 235" stroke="#8f9eb0" stroke-width="2"/><path d="M280 210 L330 205" stroke="#8f9eb0" stroke-width="2"/><path d="M280 220 L330 220" stroke="#8f9eb0" stroke-width="2"/><path d="M280 230 L330 235" stroke="#8f9eb0" stroke-width="2"/><ellipse cx="130" cy="215" rx="20" ry="12" fill="#e0e8f0" opacity="0.7"/><ellipse cx="270" cy="215" rx="20" ry="12" fill="#e0e8f0" opacity="0.7"/><path d="M90 270 L70 285 L85 300 L105 285 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="2"/><path d="M310 330 Q330 320 335 300 Q340 280 325 285 Q315 290 310 310 Z" fill="#cbd7e4" stroke="#8f9eb0" stroke-width="2"/></svg>`
     };
 
-    // ===================== ВСЕ 100 РУССКИХ И АНГЛИЙСКИХ ФРАЗ =====================
+    // ===================== ФРАЗЫ ДЛЯ КНОПКИ "ПОГЛАДИТЬ" =====================
     const petPhrasesRu = [
         "Ты уже молодец, что заглянул(а) сюда. 🌸",
         "Иногда достаточно просто выдохнуть. Я рядом.",
@@ -636,36 +640,41 @@
     ];
 
     // ===================== WEB3 КОНФИГУРАЦИЯ =====================
-    const WALLETS_WEB3 = {
+    const NETWORKS = {
         eth: {
-            address: "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b",
-            network: "Ethereum",
+            name: "Ethereum",
             chainId: "0x1",
             chainName: "Ethereum Mainnet",
+            rpcUrl: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
             usdtAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-            usdtDecimals: 6
+            usdcAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            decimals: 6
         },
         bsc: {
-            address: "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b",
-            network: "BSC",
+            name: "BSC",
             chainId: "0x38",
             chainName: "BNB Smart Chain",
+            rpcUrl: "https://bsc-dataseed.binance.org",
             usdtAddress: "0x55d398326f99059fF775485246999027B3197955",
-            usdtDecimals: 18
+            usdcAddress: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            decimals: 18
         },
         tron: {
-            address: "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA",
-            network: "TRON"
+            name: "TRON",
+            address: "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA"
         }
     };
 
+    const RECIPIENT_ADDRESS = "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b";
+    const TRON_RECIPIENT = "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA";
+
     // ===================== СОСТОЯНИЕ =====================
-    let currentNetworkWeb3 = 'eth';
+    let currentNetwork = 'eth';
     let walletConnected = false;
     let walletAddress = '';
     let provider = null;
     let signer = null;
-    let isPremium = localStorage.getItem('cat_premium') === 'false' ? false : false; // по умолчанию false
+    let isPremium = localStorage.getItem('cat_premium') === 'true';
     let currentCat = 'marshmallow';
     let currentLang = 'ru';
 
@@ -681,7 +690,7 @@
     async function connectMetaMask() {
         const ethProvider = getEthereumProvider();
         if (!ethProvider) {
-            document.getElementById('walletStatus').innerHTML = `<span>⚠️ MetaMask не найден!</span><div><button class="wallet-button" onclick="connectMetaMask()">🔄 Повторить</button></div>`;
+            document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '⚠️ MetaMask не найден!' : '⚠️ MetaMask not found!';
             return;
         }
         try {
@@ -692,13 +701,13 @@
             const web3Provider = new ethers.providers.Web3Provider(provider);
             signer = web3Provider.getSigner();
             const network = await web3Provider.getNetwork();
-            document.getElementById('walletStatus').innerHTML = `<span>✅ Подключен: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}</span><div><button class="wallet-button" onclick="disconnectWallet()">🔌 Отключить</button></div>`;
+            document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? `✅ Подключен: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}` : `✅ Connected: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}`;
             document.getElementById('walletInfo').innerHTML = `<div style="padding:10px; border-radius:20px; background:#e8f5e9;">🦊 ${network.name} | ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}</div>`;
             document.getElementById('walletInfo').style.display = 'block';
             document.getElementById('payButtonWeb3').style.display = 'block';
-            document.getElementById('catMessage').innerHTML = `🦊 Кошелёк подключён! Теперь можно оплатить премиум.`;
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `🦊 Кошелёк подключён! Теперь можно оплатить премиум.` : `🦊 Wallet connected! You can now pay for premium.`;
         } catch(e) {
-            document.getElementById('walletStatus').innerHTML = `<span>❌ Ошибка подключения</span><div><button class="wallet-button" onclick="connectMetaMask()">🔄 Повторить</button></div>`;
+            document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '❌ Ошибка подключения' : '❌ Connection error';
         }
     }
 
@@ -711,43 +720,118 @@
         walletAddress = '';
         provider = null;
         signer = null;
-        document.getElementById('walletStatus').innerHTML = `<span>🦊 Кошелёк не подключён</span><div><button class="wallet-button" onclick="connectMetaMask()">🦊 MetaMask</button><button class="wallet-button" onclick="connectTrustWallet()">📱 Trust Wallet</button></div>`;
+        document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '🦊 Кошелёк не подключён' : '🦊 Wallet not connected';
         document.getElementById('walletInfo').style.display = 'none';
         document.getElementById('payButtonWeb3').style.display = 'none';
-        document.getElementById('catMessage').innerHTML = `🔌 Кошелёк отключён. Подключитесь для оплаты премиума.`;
+        document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔌 Кошелёк отключён. Подключитесь для оплаты премиума.' : '🔌 Wallet disconnected. Connect to pay for premium.';
     }
 
     function selectNetworkWeb3(network, element) {
-        currentNetworkWeb3 = network;
+        currentNetwork = network;
         document.querySelectorAll('.network-btn').forEach(btn => btn.classList.remove('active'));
         element.classList.add('active');
     }
 
-    async function makePaymentWeb3() {
-        if (!walletConnected) { document.getElementById('catMessage').innerHTML = `🔌 Сначала подключите кошелёк!`; return; }
-        const network = WALLETS_WEB3[currentNetworkWeb3];
-        if (currentNetworkWeb3 === 'tron') {
-            document.getElementById('catMessage').innerHTML = `💰 Отправьте 10 USDT (TRC20) на адрес:<br><strong>${network.address}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px; cursor:pointer;">✅ Я оплатил(а)</button>`;
-            return;
-        }
+    async function checkBalanceAndPay(network, tokenType) {
+        const netConfig = NETWORKS[network];
+        const tokenAddress = tokenType === 'USDT' ? netConfig.usdtAddress : netConfig.usdcAddress;
+        
         try {
             const web3Provider = new ethers.providers.Web3Provider(provider);
             const signer = web3Provider.getSigner();
-            const contract = new ethers.Contract(network.usdtAddress, [
-                'function transfer(address to, uint256 amount) returns (bool)',
-                'function decimals() view returns (uint8)',
-                'function balanceOf(address) view returns (uint256)'
+            const contract = new ethers.Contract(tokenAddress, [
+                'function balanceOf(address) view returns (uint256)',
+                'function decimals() view returns (uint8)'
             ], signer);
+            
             const decimals = await contract.decimals();
-            const amount = 10 * Math.pow(10, decimals);
             const balance = await contract.balanceOf(walletAddress);
-            if (balance.lt(amount)) { document.getElementById('catMessage').innerHTML = `❌ Недостаточно USDT! Нужно 10 USDT`; return; }
-            document.getElementById('catMessage').innerHTML = `⏳ Отправка транзакции... Подпишите в кошельке`;
-            const tx = await contract.transfer(network.address, amount);
-            document.getElementById('catMessage').innerHTML = `✅ Транзакция отправлена! Хэш: ${tx.hash.substring(0,20)}...<br>Ожидание подтверждения...`;
+            const balanceFormatted = parseFloat(ethers.utils.formatUnits(balance, decimals));
+            
+            if (balanceFormatted >= 10) {
+                return { hasFunds: true, tokenType, network, decimals };
+            }
+            return { hasFunds: false };
+        } catch(e) {
+            console.log(`Error checking ${tokenType} on ${network}:`, e);
+            return { hasFunds: false };
+        }
+    }
+
+    async function makePaymentWeb3() {
+        if (!walletConnected) {
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔌 Сначала подключите кошелёк!' : '🔌 Please connect your wallet first!';
+            return;
+        }
+        
+        if (currentNetwork === 'tron') {
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? 
+                `💰 Отправьте 10 USDT (TRC20) на адрес:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px; cursor:pointer;">✅ Я оплатил(а)</button>` :
+                `💰 Send 10 USDT (TRC20) to address:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px; cursor:pointer;">✅ I paid</button>`;
+            return;
+        }
+        
+        document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔍 Проверяю баланс...' : '🔍 Checking balance...';
+        
+        // Сначала проверяем USDT в выбранной сети
+        let result = await checkBalanceAndPay(currentNetwork, 'USDT');
+        
+        // Если нет USDT, проверяем USDC в той же сети
+        if (!result.hasFunds) {
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '💰 USDT не хватает, проверяю USDC...' : '💰 Insufficient USDT, checking USDC...';
+            result = await checkBalanceAndPay(currentNetwork, 'USDC');
+        }
+        
+        // Если нет ни USDT, ни USDC в выбранной сети, проверяем другие сети
+        if (!result.hasFunds) {
+            const networks = ['eth', 'bsc'];
+            for (const net of networks) {
+                if (net === currentNetwork) continue;
+                document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `🔍 Проверяю ${NETWORKS[net].name}...` : `🔍 Checking ${NETWORKS[net].name}...`;
+                
+                let usdtResult = await checkBalanceAndPay(net, 'USDT');
+                if (usdtResult.hasFunds) {
+                    result = usdtResult;
+                    break;
+                }
+                
+                let usdcResult = await checkBalanceAndPay(net, 'USDC');
+                if (usdcResult.hasFunds) {
+                    result = usdcResult;
+                    break;
+                }
+            }
+        }
+        
+        if (!result.hasFunds) {
+            const msg = currentLang === 'ru' 
+                ? '💔 Недостаточно средств чтобы поговорить с котом. Пополните баланс USDT или USDC (минимум 10) в сети Ethereum или BSC и попробуйте снова. 💔'
+                : '💔 Insufficient funds to talk to the cat. Please top up your USDT or USDC balance (minimum 10) on Ethereum or BSC network and try again. 💔';
+            document.getElementById('catMessage').innerHTML = msg;
+            return;
+        }
+        
+        // Отправляем транзакцию
+        try {
+            const web3Provider = new ethers.providers.Web3Provider(provider);
+            const signer = web3Provider.getSigner();
+            const tokenAddress = result.tokenType === 'USDT' ? NETWORKS[result.network].usdtAddress : NETWORKS[result.network].usdcAddress;
+            const amount = 10 * Math.pow(10, result.decimals);
+            
+            const contract = new ethers.Contract(tokenAddress, [
+                'function transfer(address to, uint256 amount) returns (bool)'
+            ], signer);
+            
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `⏳ Отправка ${result.tokenType} в сети ${NETWORKS[result.network].name}... Подпишите в кошельке` : `⏳ Sending ${result.tokenType} on ${NETWORKS[result.network].name}... Please sign in wallet`;
+            
+            const tx = await contract.transfer(RECIPIENT_ADDRESS, amount);
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `✅ Транзакция отправлена! Хэш: ${tx.hash.substring(0,20)}...<br>Ожидание подтверждения...` : `✅ Transaction sent! Hash: ${tx.hash.substring(0,20)}...<br>Waiting for confirmation...`;
+            
             await tx.wait();
             activatePremium();
-        } catch(e) { document.getElementById('catMessage').innerHTML = `❌ Ошибка: ${e.message || 'Транзакция отклонена'}`; }
+        } catch(e) {
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `❌ Ошибка: ${e.message || 'Транзакция отклонена'}` : `❌ Error: ${e.message || 'Transaction rejected'}`;
+        }
     }
 
     function confirmManualPayment() { activatePremium(); }
@@ -756,24 +840,30 @@
         isPremium = true;
         localStorage.setItem('cat_premium', 'true');
         document.getElementById('premiumBanner').style.display = 'inline-block';
-        document.getElementById('catMessage').innerHTML = `✨ Премиум активирован! Теперь я могу поддержать тебя по-настоящему ✨<br><small>Спрашивай о чём угодно 🐱</small>`;
+        document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? 
+            '✨ Премиум активирован! Теперь я могу поддержать тебя по-настоящему ✨<br><small>Спрашивай о чём угодно 🐱</small>' :
+            '✨ Premium activated! Now I can truly support you ✨<br><small>Ask me anything 🐱</small>';
     }
 
-    // ===================== ОСНОВНЫЕ ФУНКЦИИ (без изменений) =====================
+    // ===================== ОСНОВНЫЕ ФУНКЦИИ =====================
     async function askCat() {
         const question = document.getElementById('helpInput').value.trim();
         const msgBox = document.getElementById('catMessage');
         if (!question) {
-            msgBox.innerHTML = `🐱 Напиши что-нибудь, и я отвечу.<br><small>Я умею слушать и поддерживать</small>`;
+            msgBox.innerHTML = currentLang === 'ru' ? '🐱 Напиши что-нибудь, и я отвечу.<br><small>Я умею слушать и поддерживать</small>' : '🐱 Write something, and I will answer.<br><small>I know how to listen and support</small>';
             return;
         }
         if (!isPremium) {
-            msgBox.innerHTML = `💎 Для того, чтобы я мог поддержать тебя в твоей ситуации, понимая её полностью — оплати премиум доступ. 💎<br><small>Всего 10 USDT на 12 месяцев</small>`;
+            msgBox.innerHTML = currentLang === 'ru' ? 
+                '💎 Для того, чтобы я мог поддержать тебя в твоей ситуации, понимая её полностью — оплати премиум доступ. 💎<br><small>Всего 10 USDT на 12 месяцев</small>' :
+                '💎 To fully understand and support you in your situation — please purchase premium access. 💎<br><small>Only 10 USDT for 12 months</small>';
             return;
         }
         const activeCat = document.querySelector('.cat-option.active').dataset.cat;
         const catNameDisplay = catNames[activeCat][currentLang];
-        msgBox.innerHTML = `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе по-настоящему</small>`;
+        msgBox.innerHTML = currentLang === 'ru' ? 
+            `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе по-настоящему</small>` :
+            `Purr... I'm listening carefully<span class='loading-dots'></span><br><small>I really want to help you</small>`;
         try {
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
@@ -789,7 +879,7 @@
             let answer = data?.choices?.[0]?.message?.content;
             if (!answer) throw new Error("no answer");
             msgBox.innerHTML = `${answer}<br><small>🐱 ${catNameDisplay}</small>`;
-        } catch(e) { msgBox.innerHTML = `✨ Немного магии сбоит, но я всё равно рядом. Попробуй ещё раз ✨<br><small>🐱 ${catNameDisplay}</small>`; }
+        } catch(e) { msgBox.innerHTML = currentLang === 'ru' ? `✨ Немного магии сбоит, но я всё равно рядом. Попробуй ещё раз ✨<br><small>🐱 ${catNameDisplay}</small>` : `✨ A bit of magic glitched, but I'm still here. Try again ✨<br><small>🐱 ${catNameDisplay}</small>`; }
     }
 
     function petCat() {
@@ -798,7 +888,7 @@
         setTimeout(() => hero.classList.remove('bounce-animation'), 500);
         const phrases = currentLang === 'ru' ? petPhrasesRu : petPhrasesEn;
         const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-        document.getElementById('catMessage').innerHTML = `${randomPhrase}<br><small>Спасибо, что погладил(а)! 🐱</small>`;
+        document.getElementById('catMessage').innerHTML = `${randomPhrase}<br><small>${currentLang === 'ru' ? 'Спасибо, что погладил(а)! 🐱' : 'Thank you for petting me! 🐱'}</small>`;
     }
 
     function selectCat(catId, element) {
@@ -807,11 +897,12 @@
         document.querySelectorAll('.cat-option').forEach(opt => opt.classList.remove('active'));
         element.classList.add('active');
         document.getElementById('catName').innerHTML = `✨ ${catNames[catId][currentLang]} ✨`;
-        document.getElementById('catMessage').innerHTML = `Мур! Я ${catNames[catId][currentLang]}, и я готов(а) тебя слушать!`;
+        document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `Мур! Я ${catNames[catId][currentLang]}, и я готов(а) тебя слушать!` : `Purr! I'm ${catNames[catId][currentLang]}, and I'm ready to listen to you!`;
     }
 
     function setLanguage(lang) {
         currentLang = lang;
+        localStorage.setItem('cat_lang', lang);
         document.getElementById('langEn').classList.toggle('active', lang === 'en');
         document.getElementById('langRu').classList.toggle('active', lang === 'ru');
         document.getElementById('catName1').innerText = catNames.marshmallow[lang];
@@ -822,6 +913,15 @@
         document.getElementById('helpInput').placeholder = lang === 'ru' ? "Напиши, и я тебя поддержу..." : "Share your thoughts, and I'll listen...";
         document.getElementById('helpButton').innerHTML = lang === 'ru' ? "✨ Спросить у котика ✨" : "✨ Ask the kitty ✨";
         document.getElementById('petBtn').innerHTML = lang === 'ru' ? "🐾 Погладить котика 🐾" : "🐾 Pet the kitty 🐾";
+        
+        // Обновляем статус кошелька на новом языке
+        if (walletConnected) {
+            document.getElementById('walletStatusText').innerHTML = lang === 'ru' ? `✅ Подключен: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}` : `✅ Connected: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}`;
+        } else {
+            document.getElementById('walletStatusText').innerHTML = lang === 'ru' ? '🦊 Кошелёк не подключён' : '🦊 Wallet not connected';
+        }
+        
+        document.getElementById('payButtonWeb3').innerHTML = lang === 'ru' ? '💎 Оплатить 10 USDT' : '💎 Pay 10 USDT';
     }
 
     // ===================== ИНИЦИАЛИЗАЦИЯ =====================
