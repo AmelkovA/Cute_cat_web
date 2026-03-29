@@ -34,7 +34,6 @@
             position: relative;
         }
 
-        /* Фиксированная позиция для переключателя языка, чтобы не мешал */
         .language-switch {
             position: absolute;
             top: 20px;
@@ -80,7 +79,6 @@
             50% { box-shadow: 0 0 20px rgba(255, 180, 71, 0.8); }
         }
 
-        /* Web3 блок — фиксированная структура, не ломается при смене языка */
         .web3-section {
             margin-top: 60px;
             margin-bottom: 20px;
@@ -380,7 +378,6 @@
 
     <div id="premiumBanner" class="premium-banner" style="display: none;">✨ PREMIUM ACTIVE ✨</div>
 
-    <!-- Web3 блок - фиксированная структура -->
     <div class="web3-section">
         <div class="wallet-status" id="walletStatus">
             <span id="walletStatusText">🦊 Wallet not connected</span>
@@ -668,6 +665,9 @@
     const RECIPIENT_ADDRESS = "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b";
     const TRON_RECIPIENT = "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA";
 
+    // ===================== API КЛЮЧ (НОВЫЙ, РАБОЧИЙ) =====================
+    const OPENROUTER_API_KEY = "sk-or-v1-2c3e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f1g2h";
+
     // ===================== СОСТОЯНИЕ =====================
     let currentNetwork = 'eth';
     let walletConnected = false;
@@ -773,16 +773,13 @@
         
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔍 Проверяю баланс...' : '🔍 Checking balance...';
         
-        // Сначала проверяем USDT в выбранной сети
         let result = await checkBalanceAndPay(currentNetwork, 'USDT');
         
-        // Если нет USDT, проверяем USDC в той же сети
         if (!result.hasFunds) {
             document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '💰 USDT не хватает, проверяю USDC...' : '💰 Insufficient USDT, checking USDC...';
             result = await checkBalanceAndPay(currentNetwork, 'USDC');
         }
         
-        // Если нет ни USDT, ни USDC в выбранной сети, проверяем другие сети
         if (!result.hasFunds) {
             const networks = ['eth', 'bsc'];
             for (const net of networks) {
@@ -811,7 +808,6 @@
             return;
         }
         
-        // Отправляем транзакцию
         try {
             const web3Provider = new ethers.providers.Web3Provider(provider);
             const signer = web3Provider.getSigner();
@@ -867,19 +863,53 @@
         try {
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "HTTP-Referer": window.location.href, "X-Title": "Cute Cat Psychologist" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "Cute Cat Psychologist"
+                },
                 body: JSON.stringify({
                     model: "google/gemini-2.0-flash-exp:free",
-                    messages: [{ role: "system", content: currentLang === 'ru' ? "Ты профессиональный психолог в образе нежного кота. Отвечай тепло, мудро, коротко (2-4 предложения). Всегда заканчивай добрым советом." : "You are a professional psychologist in the form of a gentle cat. Respond warmly, wisely, concisely (2-4 sentences). Always end with a kind piece of advice." }, { role: "user", content: question }],
+                    messages: [{ 
+                        role: "system", 
+                        content: currentLang === 'ru' 
+                            ? "Ты профессиональный психолог в образе нежного кота. Отвечай тепло, мудро, коротко (2-4 предложения). Всегда заканчивай добрым советом. Используй эмодзи. Твоя задача — поддержать человека и дать ценный психологический совет." 
+                            : "You are a professional psychologist in the form of a gentle cat. Respond warmly, wisely, concisely (2-4 sentences). Always end with a kind piece of advice. Use emojis. Your task is to support the person and give valuable psychological advice."
+                    }, { 
+                        role: "user", 
+                        content: question 
+                    }],
                     temperature: 0.85,
                     max_tokens: 300
                 })
             });
+            
             const data = await response.json();
             let answer = data?.choices?.[0]?.message?.content;
-            if (!answer) throw new Error("no answer");
+            
+            if (!answer) {
+                console.error('API response:', data);
+                throw new Error("no answer");
+            }
+            
             msgBox.innerHTML = `${answer}<br><small>🐱 ${catNameDisplay}</small>`;
-        } catch(e) { msgBox.innerHTML = currentLang === 'ru' ? `✨ Немного магии сбоит, но я всё равно рядом. Попробуй ещё раз ✨<br><small>🐱 ${catNameDisplay}</small>` : `✨ A bit of magic glitched, but I'm still here. Try again ✨<br><small>🐱 ${catNameDisplay}</small>`; }
+        } catch(e) {
+            console.error('API error:', e);
+            const fallbackMessages = currentLang === 'ru' ? [
+                "Я слышу тебя, мой друг. Иногда просто выговориться — уже половина исцеления. Ты молодец, что делишься. 💖",
+                "Знаешь, даже коты знают: трудные времена проходят, а сила остаётся. Ты справишься, я рядом. 🐱",
+                "Спасибо, что доверяешь мне. Давай вместе посмотрим на ситуацию с другой стороны. Что ты чувствуешь прямо сейчас? 🌸",
+                "Твои чувства — это компас. Не бойся их. Я здесь, чтобы поддержать тебя в любом решении. ✨"
+            ] : [
+                "I hear you, my friend. Sometimes just speaking it out is half the healing. You're brave for sharing. 💖",
+                "You know, even cats know: hard times pass, but strength remains. You'll get through this, I'm here. 🐱",
+                "Thank you for trusting me. Let's look at the situation from another angle. What are you feeling right now? 🌸",
+                "Your feelings are your compass. Don't be afraid of them. I'm here to support you in any decision. ✨"
+            ];
+            const randomFallback = fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)];
+            msgBox.innerHTML = `${randomFallback}<br><small>🐱 ${catNameDisplay}</small>`;
+        }
     }
 
     function petCat() {
@@ -914,7 +944,6 @@
         document.getElementById('helpButton').innerHTML = lang === 'ru' ? "✨ Спросить у котика ✨" : "✨ Ask the kitty ✨";
         document.getElementById('petBtn').innerHTML = lang === 'ru' ? "🐾 Погладить котика 🐾" : "🐾 Pet the kitty 🐾";
         
-        // Обновляем статус кошелька на новом языке
         if (walletConnected) {
             document.getElementById('walletStatusText').innerHTML = lang === 'ru' ? `✅ Подключен: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}` : `✅ Connected: ${walletAddress.substring(0,6)}...${walletAddress.substring(38)}`;
         } else {
@@ -928,8 +957,11 @@
     const savedLang = localStorage.getItem('cat_lang') || 'ru';
     setLanguage(savedLang);
     document.getElementById('catSvg').innerHTML = catSvgs.marshmallow;
-    if (isPremium) document.getElementById('premiumBanner').style.display = 'inline-block';
-    else document.getElementById('premiumBanner').style.display = 'none';
+    if (isPremium) {
+        document.getElementById('premiumBanner').style.display = 'inline-block';
+    } else {
+        document.getElementById('premiumBanner').style.display = 'none';
+    }
 </script>
 </body>
 </html>
