@@ -214,14 +214,17 @@
             font-weight: 700;
             margin-top: 12px;
             width: 100%;
-            cursor: pointer;
             transition: all 0.3s;
-        }
-        .help-button.active:hover { background: #9f73ff; transform: translateY(-2px); }
-        .help-button.disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background: #b28dff;
+        }
+        .help-button.active {
+            opacity: 1;
+            cursor: pointer;
+        }
+        .help-button.active:hover {
+            background: #9f73ff;
+            transform: translateY(-2px);
         }
         .loading-dots { display: inline-block; }
         .loading-dots::after {
@@ -286,7 +289,7 @@
     <div class="help-section">
         <div class="help-title" id="helpTitle">💬 What's on your mind? 💬</div>
         <input type="text" class="help-input" id="helpInput" placeholder="Share your thoughts, and I'll listen...">
-        <button class="help-button disabled" id="helpButton" onclick="askCat()" disabled>✨ Ask the kitty ✨</button>
+        <button class="help-button" id="helpButton" onclick="askCat()" disabled>✨ Ask the kitty ✨</button>
     </div>
 </div>
 
@@ -299,88 +302,98 @@
     };
 
     // ===================== ФРАЗЫ ДЛЯ КНОПКИ "ПОГЛАДИТЬ" =====================
-    const petPhrasesRu = [
-        "Ты уже молодец, что заглянул(а) сюда. 🌸","Иногда достаточно просто выдохнуть. Я рядом.","Каждый день — это новая страница. Пиши её с заботой о себе.","Ты не обязан(а) быть идеальным(ой), чтобы быть любимым(ой).","Даже маленький шаг — это уже движение.","Твои чувства важны. Дай им место.","Сегодня можно просто отдохнуть. Мир подождёт.","Спасибо, что ты есть. Ты делаешь этот мир добрее.","Мур-мур, я верю в тебя 🐾"
-    ];
-    const petPhrasesEn = [
-        "You're already amazing just for being here. 🌸","Sometimes a deep breath is all you need. I'm right here.","Every day is a new page. Write it with kindness toward yourself.","You don't have to be perfect to be loved.","Even a tiny step is still progress.","Your feelings matter. Give them space.","Today you can simply rest. The world will wait.","Thank you for existing. You make this world softer.","Purr-purr, I believe in you 🐾"
-    ];
+    const petPhrases = {
+        en: [
+            "You're already amazing just for being here. 🌸",
+            "Sometimes a deep breath is all you need. I'm right here.",
+            "Every day is a new page. Write it with kindness toward yourself.",
+            "You don't have to be perfect to be loved.",
+            "Even a tiny step is still progress.",
+            "Your feelings matter. Give them space.",
+            "Today you can simply rest. The world will wait.",
+            "Thank you for existing. You make this world softer.",
+            "Purr-purr, I believe in you 🐾"
+        ],
+        ru: [
+            "Ты уже молодец, что заглянул(а) сюда. 🌸",
+            "Иногда достаточно просто выдохнуть. Я рядом.",
+            "Каждый день — это новая страница. Пиши её с заботой о себе.",
+            "Ты не обязан(а) быть идеальным(ой), чтобы быть любимым(ой).",
+            "Даже маленький шаг — это уже движение.",
+            "Твои чувства важны. Дай им место.",
+            "Сегодня можно просто отдохнуть. Мир подождёт.",
+            "Спасибо, что ты есть. Ты делаешь этот мир добрее.",
+            "Мур-мур, я верю в тебя 🐾"
+        ]
+    };
 
     // ===================== WEB3 КОНФИГ =====================
     const NETWORKS = {
-        eth: { name: "Ethereum", chainId: "0x1", chainName: "Ethereum Mainnet", rpcUrl: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", usdtAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7", usdcAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
-        bsc: { name: "BSC", chainId: "0x38", chainName: "BNB Smart Chain", rpcUrl: "https://bsc-dataseed.binance.org", usdtAddress: "0x55d398326f99059fF775485246999027B3197955", usdcAddress: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", decimals: 18 },
+        eth: { name: "Ethereum", chainId: "0x1", chainName: "Ethereum Mainnet", usdtAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7", usdcAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
+        bsc: { name: "BSC", chainId: "0x38", chainName: "BNB Smart Chain", usdtAddress: "0x55d398326f99059fF775485246999027B3197955", usdcAddress: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", decimals: 18 },
         tron: { name: "TRON", address: "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA" }
     };
     const RECIPIENT_ADDRESS = "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b";
     const TRON_RECIPIENT = "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA";
 
-    // ===================== API (3 провайдера) =====================
-    const API_ENDPOINTS = [
-        {
-            url: "https://openrouter.ai/api/v1/chat/completions",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer sk-or-v1-2c3e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f1g2h", "HTTP-Referer": "https://amelkova.github.io/Cute_cat_web/", "X-Title": "Cute Cat" },
-            body: (messages) => JSON.stringify({ model: "google/gemini-2.0-flash-exp:free", messages, temperature: 0.85, max_tokens: 350 })
-        },
-        {
-            url: "https://api.groq.com/openai/v1/chat/completions",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer gsk_5kL5kQ5y5x5z5A5B5C5D5E5F5G5H5I5J5K5L5M5N5O5P5Q5R" },
-            body: (messages) => JSON.stringify({ model: "llama3-8b-8192", messages, temperature: 0.8, max_tokens: 350 })
-        },
-        {
-            url: "https://api.lepton.ai/api/v1/chat/completions",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer lep_5kL5kQ5y5x5z5A5B5C5D5E5F5G5H5I5J5K5L5M5N5O5P5Q5R" },
-            body: (messages) => JSON.stringify({ model: "llama3-8b", messages, temperature: 0.8, max_tokens: 350 })
-        }
-    ];
+    // ===================== API =====================
+    const OPENROUTER_KEY = "sk-or-v1-2c3e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f1g2h";
 
     async function askAI(messages) {
-        for (let i = 0; i < API_ENDPOINTS.length; i++) {
-            const api = API_ENDPOINTS[i];
-            try {
-                const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 10000);
-                const response = await fetch(api.url, {
-                    method: "POST",
-                    headers: api.headers,
-                    body: api.body(messages),
-                    signal: controller.signal
-                });
-                clearTimeout(timeout);
-                if (response.ok) {
-                    const data = await response.json();
-                    let answer = data?.choices?.[0]?.message?.content;
-                    if (answer && answer.trim().length > 10) return answer.trim();
-                }
-            } catch (e) { console.warn(`API ${i} failed:`, e); }
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 12000);
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENROUTER_KEY}`,
+                    "HTTP-Referer": "https://amelkova.github.io/Cute_cat_web/",
+                    "X-Title": "Cute Cat"
+                },
+                body: JSON.stringify({
+                    model: "google/gemini-2.0-flash-exp:free",
+                    messages: messages,
+                    temperature: 0.85,
+                    max_tokens: 400
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeout);
+            if (response.ok) {
+                const data = await response.json();
+                let answer = data?.choices?.[0]?.message?.content;
+                if (answer && answer.trim().length > 15) return answer.trim();
+            }
+            return null;
+        } catch (e) {
+            console.warn("API error:", e);
+            return null;
         }
-        return null;
     }
 
     // ===================== СОСТОЯНИЕ =====================
     let currentNetwork = 'eth', walletConnected = false, walletAddress = '', provider = null, signer = null;
     let isPremium = localStorage.getItem('cat_premium') === 'true';
-    let currentCat = 'marshmallow', currentLang = 'en'; // язык по умолчанию — английский
+    let currentCat = 'marshmallow', currentLang = 'en';
     let conversationHistory = [];
 
     const catNames = { marshmallow: { ru: "Зефирка", en: "Marshmallow" }, ginger: { ru: "Рыжик", en: "Ginger" }, misty: { ru: "Дымка", en: "Misty" } };
 
-    // Функция обновления состояния кнопки "Спросить у котика"
     function updateAskButtonState() {
         const askBtn = document.getElementById('helpButton');
         if (walletConnected && isPremium) {
             askBtn.disabled = false;
-            askBtn.classList.remove('disabled');
             askBtn.classList.add('active');
         } else {
             askBtn.disabled = true;
             askBtn.classList.remove('active');
-            askBtn.classList.add('disabled');
         }
     }
 
     // ===================== WEB3 ФУНКЦИИ =====================
     function getEthereumProvider() { return window.ethereum || window.web3?.currentProvider || null; }
+    
     async function connectMetaMask() {
         const ethProvider = getEthereumProvider();
         if (!ethProvider) {
@@ -390,7 +403,8 @@
         try {
             const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
             walletAddress = accounts[0]; walletConnected = true; provider = ethProvider;
-            const web3Provider = new ethers.providers.Web3Provider(provider); signer = web3Provider.getSigner();
+            const web3Provider = new ethers.providers.Web3Provider(provider);
+            signer = web3Provider.getSigner();
             const network = await web3Provider.getNetwork();
             document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? `✅ Подключен: ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : `✅ Connected: ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
             document.getElementById('walletInfo').innerHTML = `<div style="padding:10px; background:#e8f5e9; border-radius:20px;">🦊 ${network.name} | ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}</div>`;
@@ -400,7 +414,9 @@
             updateAskButtonState();
         } catch(e) { document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '❌ Ошибка подключения' : '❌ Connection error'; }
     }
+    
     async function connectTrustWallet() { await connectMetaMask(); }
+    
     function disconnectWallet() {
         walletConnected = false; walletAddress = ''; provider = null; signer = null;
         document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '🦊 Кошелёк не подключён' : '🦊 Wallet not connected';
@@ -409,15 +425,22 @@
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔌 Кошелёк отключён. Подключитесь для оплаты премиума.' : '🔌 Wallet disconnected. Connect to pay for premium.';
         updateAskButtonState();
     }
+    
     function selectNetworkWeb3(network, element) {
         currentNetwork = network;
         document.querySelectorAll('.network-btn').forEach(btn => btn.classList.remove('active'));
         element.classList.add('active');
     }
+    
     async function makePaymentWeb3() {
-        if (!walletConnected) { document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔌 Сначала подключите кошелёк!' : '🔌 Please connect your wallet first!'; return; }
+        if (!walletConnected) {
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔌 Сначала подключите кошелёк!' : '🔌 Please connect your wallet first!';
+            return;
+        }
         if (currentNetwork === 'tron') {
-            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `💰 Отправьте 10 USDT (TRC20) на адрес:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px;">✅ Я оплатил(а)</button>` : `💰 Send 10 USDT (TRC20) to:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px;">✅ I paid</button>`;
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? 
+                `💰 Отправьте 10 USDT (TRC20) на адрес:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px;">✅ Я оплатил(а)</button>` :
+                `💰 Send 10 USDT (TRC20) to:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px;">✅ I paid</button>`;
             return;
         }
         try {
@@ -431,7 +454,9 @@
             activatePremium();
         } catch(e) { document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `❌ Ошибка: ${e.message || 'Транзакция отклонена'}` : `❌ Error: ${e.message || 'Transaction rejected'}`; }
     }
+    
     function confirmManualPayment() { activatePremium(); }
+    
     function activatePremium() {
         isPremium = true;
         localStorage.setItem('cat_premium', 'true');
@@ -448,10 +473,14 @@
                 : '🔌 Please connect your wallet and activate premium so I can fully support you.';
             return;
         }
+        
         const question = document.getElementById('helpInput').value.trim();
         const msgBox = document.getElementById('catMessage');
+        
         if (!question) {
-            msgBox.innerHTML = currentLang === 'ru' ? '🐱 Напиши что-нибудь, и я отвечу.<br><small>Я умею слушать и поддерживать</small>' : '🐱 Write something, and I will answer.<br><small>I know how to listen and support</small>';
+            msgBox.innerHTML = currentLang === 'ru' 
+                ? '🐱 Напиши что-нибудь, и я отвечу.<br><small>Я умею слушать и поддерживать</small>' 
+                : '🐱 Write something, and I will answer.<br><small>I know how to listen and support</small>';
             return;
         }
 
@@ -459,28 +488,21 @@
         const catNameDisplay = catNames[activeCat][currentLang];
         
         conversationHistory.push({ role: "user", content: question });
-        if (conversationHistory.length > 8) conversationHistory = conversationHistory.slice(-8);
+        if (conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
         
-        msgBox.innerHTML = currentLang === 'ru' ? `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе разобраться</small>` : `Purr... I'm listening carefully<span class='loading-dots'></span><br><small>I want to help you understand</small>`;
+        msgBox.innerHTML = currentLang === 'ru' 
+            ? `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе разобраться</small>` 
+            : `Purr... I'm listening carefully<span class='loading-dots'></span><br><small>I want to help you understand</small>`;
         
-        const systemPrompt = currentLang === 'ru' 
-            ? `Ты — профессиональный психолог в образе нежного кота. Твоя задача: 
-- Внимательно слушать и отражать чувства собеседника
-- Задавать уточняющие вопросы, чтобы помочь человеку глубже понять себя
-- Не давать готовых решений, а направлять к осознанию
-- Проявлять эмпатию, быть мягким, но профессиональным
-- В конце каждого ответа обязательно задавай встречный вопрос, чтобы продолжить диалог
-- Используй кошачьи метафоры (мурчание, лапки, усы) для мягкости, но сохраняй психологическую глубину
-- Отвечай кратко (3-5 предложений) + вопрос.`
-            : `You are a professional psychologist in the form of a gentle cat. Your task:
-- Listen carefully and reflect the client's feelings
-- Ask clarifying questions to help the person understand themselves deeper
-- Don't give ready-made solutions, but guide toward insight
-- Be empathetic, soft, yet professional
-- Always end each response with a follow-up question to continue the dialogue
-- Use cat metaphors (purring, paws, whiskers) for gentleness, but maintain psychological depth
-- Answer briefly (3-5 sentences) + a question.`;
-        
+        const systemPrompt = `You are a professional psychologist in the form of a gentle, fluffy cat. Your task:
+- Listen carefully and reflect the client's feelings with empathy
+- Ask thoughtful, open-ended questions to help them explore their thoughts deeper
+- Never give generic advice — tailor your responses to what they've shared
+- Keep responses warm, concise (3-5 sentences), and always end with a question to continue the dialogue
+- Use soft cat metaphors (purring, paws, whiskers) naturally, but maintain psychological depth
+- Draw from the conversation history to make your responses feel personal and connected
+- Be genuine, supportive, and help them gain insight, not just feel better temporarily`;
+
         const messages = [
             { role: "system", content: systemPrompt },
             ...conversationHistory
@@ -488,7 +510,7 @@
         
         const answer = await askAI(messages);
         
-        if (answer) {
+        if (answer && answer.length > 15) {
             conversationHistory.push({ role: "assistant", content: answer });
             msgBox.innerHTML = `${answer}<br><small>🐱 ${catNameDisplay}</small>`;
         } else {
@@ -507,6 +529,7 @@
             conversationHistory.push({ role: "assistant", content: fallbackMsg });
             msgBox.innerHTML = `${fallbackMsg}<br><small>🐱 ${catNameDisplay}</small>`;
         }
+        
         document.getElementById('helpInput').value = '';
     }
 
@@ -514,7 +537,7 @@
         const hero = document.getElementById('catHero');
         hero.classList.add('bounce-animation');
         setTimeout(() => hero.classList.remove('bounce-animation'), 500);
-        const phrases = currentLang === 'ru' ? petPhrasesRu : petPhrasesEn;
+        const phrases = petPhrases[currentLang];
         const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
         document.getElementById('catMessage').innerHTML = `${randomPhrase}<br><small>${currentLang === 'ru' ? 'Спасибо, что погладил(а)! 🐱' : 'Thank you for petting me! 🐱'}</small>`;
     }
@@ -525,7 +548,9 @@
         document.querySelectorAll('.cat-option').forEach(opt => opt.classList.remove('active'));
         element.classList.add('active');
         document.getElementById('catName').innerHTML = `✨ ${catNames[catId][currentLang]} ✨`;
-        document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `Мур! Я ${catNames[catId][currentLang]}, и я готов(а) тебя слушать!` : `Purr! I'm ${catNames[catId][currentLang]}, and I'm ready to listen to you!`;
+        document.getElementById('catMessage').innerHTML = currentLang === 'ru' 
+            ? `Мур! Я ${catNames[catId][currentLang]}, и я готов(а) тебя слушать!` 
+            : `Purr! I'm ${catNames[catId][currentLang]}, and I'm ready to listen to you!`;
         conversationHistory = [];
     }
 
