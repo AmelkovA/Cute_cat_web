@@ -14,7 +14,6 @@
             padding: 20px;
             position: relative;
         }
-        /* Кнопка документации — вне приложения, в углу экрана */
         .docs-button {
             position: fixed;
             top: 20px;
@@ -30,7 +29,6 @@
             z-index: 1000;
             backdrop-filter: blur(4px);
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         .docs-button:hover {
             background: #fff0f3;
@@ -268,7 +266,6 @@
     </style>
 </head>
 <body>
-    <!-- Кнопка документации вне приложения -->
     <a href="#" id="docsButton" class="docs-button" target="_blank" rel="noopener noreferrer">📘 Documentation</a>
 
     <div class="app-container">
@@ -322,7 +319,7 @@
     </div>
 
 <script>
-    // ===================== ДОКУМЕНТАЦИЯ (ссылки по языку) =====================
+    // ===================== ДОКУМЕНТАЦИЯ =====================
     const DOCS_URLS = {
         en: "https://docs.google.com/document/d/17BvxahyD3jrXshnyJdMz9EubYIiiOvqz/edit?usp=drive_link",
         ru: "https://docs.google.com/document/d/1qq_pRKscok_0esr8C-loTdw72jg7DLBy/edit?usp=drive_link"
@@ -412,7 +409,7 @@
 
     // ===================== СОСТОЯНИЕ =====================
     let currentNetwork = 'eth', walletConnected = false, walletAddress = '', provider = null, signer = null;
-    let isPremium = localStorage.getItem('cat_premium') === 'true';
+    let isPremium = false;  // по умолчанию false
     let currentCat = 'marshmallow', currentLang = 'en';
     let conversationHistory = [];
 
@@ -420,8 +417,11 @@
 
     function updatePremiumBanner() {
         const banner = document.getElementById('premiumBanner');
-        if (isPremium) banner.style.display = 'inline-block';
-        else banner.style.display = 'none';
+        if (isPremium) {
+            banner.style.display = 'inline-block';
+        } else {
+            banner.style.display = 'none';
+        }
     }
 
     function updateAskButtonState() {
@@ -476,7 +476,6 @@
         element.classList.add('active');
     }
     
-    // Человеческая обработка ошибок оплаты
     function formatPaymentError(error) {
         const errorStr = String(error?.message || error || "").toLowerCase();
         if (errorStr.includes("insufficient funds")) {
@@ -648,10 +647,18 @@
         updateAskButtonState();
     }
 
-    // Инициализация
+    // ===================== ИНИЦИАЛИЗАЦИЯ =====================
     const savedLang = localStorage.getItem('cat_lang') || 'en';
     setLanguage(savedLang);
     document.getElementById('catSvg').innerHTML = catSvgs.marshmallow;
+    
+    // Проверяем статус премиума при загрузке
+    const storedPremium = localStorage.getItem('cat_premium');
+    if (storedPremium === 'true') {
+        isPremium = true;
+    } else {
+        isPremium = false;
+    }
     updatePremiumBanner();
     updateAskButtonState();
 </script>
