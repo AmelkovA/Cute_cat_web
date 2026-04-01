@@ -6,7 +6,7 @@
     <title>Cute Cat — Твой пушистый друг</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
-        /* все стили оставляем как были (из последней рабочей версии) */
+        /* ========== СТИЛИ (без изменений, рабочие) ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Quicksand', system-ui, sans-serif;
@@ -295,10 +295,10 @@
 
     // ===================== ФРАЗЫ ДЛЯ КНОПКИ "ПОГЛАДИТЬ" =====================
     const petPhrasesRu = [
-        "Ты уже молодец, что заглянул(а) сюда. 🌸","Иногда достаточно просто выдохнуть. Я рядом.","Каждый день — это новая страница. Пиши её с заботой о себе.","Ты не обязан(а) быть идеальным(ой), чтобы быть любимым(ой).","Даже маленький шаг — это уже движение.","Твои чувства важны. Дай им место.","Сегодня можно просто отдохнуть. Мир подождёт.","Спасибо, что ты есть. Ты делаешь этот мир добрее.","Мур-мур, я верю в тебя 🐾","Если тяжело — побудь рядом со мной. Я не буду давать советов, просто посидим.","Ты справляешься лучше, чем тебе кажется.","Позволь себе быть не в ресурсе. Это нормально.","Каждое утро — это шанс начать заботиться о себе чуточку больше.","Твоя ценность не измеряется делами. Ты уже ценность.","Маленькие победы — тоже победы. Запиши одну из них сегодня."
+        "Ты уже молодец, что заглянул(а) сюда. 🌸","Иногда достаточно просто выдохнуть. Я рядом.","Каждый день — это новая страница. Пиши её с заботой о себе.","Ты не обязан(а) быть идеальным(ой), чтобы быть любимым(ой).","Даже маленький шаг — это уже движение.","Твои чувства важны. Дай им место.","Сегодня можно просто отдохнуть. Мир подождёт.","Спасибо, что ты есть. Ты делаешь этот мир добрее.","Мур-мур, я верю в тебя 🐾"
     ];
     const petPhrasesEn = [
-        "You're already amazing just for being here. 🌸","Sometimes a deep breath is all you need. I'm right here.","Every day is a new page. Write it with kindness toward yourself.","You don't have to be perfect to be loved.","Even a tiny step is still progress.","Your feelings matter. Give them space.","Today you can simply rest. The world will wait.","Thank you for existing. You make this world softer.","Purr-purr, I believe in you 🐾","If it's heavy, just sit with me. No advice, just presence.","You're handling this better than you think.","Allow yourself to be low on energy. That's okay.","Every morning is a chance to care for yourself a little more.","Your worth is not measured by what you do. You already matter.","Small victories count too. Write one down today."
+        "You're already amazing just for being here. 🌸","Sometimes a deep breath is all you need. I'm right here.","Every day is a new page. Write it with kindness toward yourself.","You don't have to be perfect to be loved.","Even a tiny step is still progress.","Your feelings matter. Give them space.","Today you can simply rest. The world will wait.","Thank you for existing. You make this world softer.","Purr-purr, I believe in you 🐾"
     ];
 
     // ===================== WEB3 КОНФИГ =====================
@@ -310,47 +310,35 @@
     const RECIPIENT_ADDRESS = "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b";
     const TRON_RECIPIENT = "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA";
 
-    // ===================== API-ПРОВАЙДЕРЫ (fallback) =====================
+    // ===================== API (3 провайдера) =====================
     const API_ENDPOINTS = [
         {
             url: "https://openrouter.ai/api/v1/chat/completions",
             headers: { "Content-Type": "application/json", "Authorization": "Bearer sk-or-v1-2c3e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f1g2h", "HTTP-Referer": "https://amelkova.github.io/Cute_cat_web/", "X-Title": "Cute Cat" },
-            body: (prompt, lang) => JSON.stringify({
-                model: "google/gemini-2.0-flash-exp:free",
-                messages: [{ role: "system", content: lang === 'ru' ? "Ты очень нежный, пушистый кот. Отвечай тепло, коротко (2-4 предложения), поддерживающе. Будь эмпатичным, давай простые, но глубокие советы." : "You are a very gentle, fluffy cat. Respond warmly, concisely (2-4 sentences), supportively. Be empathetic, give simple but meaningful advice." }, { role: "user", content: prompt }],
-                temperature: 0.85, max_tokens: 250
-            })
+            body: (messages) => JSON.stringify({ model: "google/gemini-2.0-flash-exp:free", messages, temperature: 0.85, max_tokens: 350 })
         },
         {
             url: "https://api.groq.com/openai/v1/chat/completions",
             headers: { "Content-Type": "application/json", "Authorization": "Bearer gsk_5kL5kQ5y5x5z5A5B5C5D5E5F5G5H5I5J5K5L5M5N5O5P5Q5R" },
-            body: (prompt, lang) => JSON.stringify({
-                model: "llama3-8b-8192",
-                messages: [{ role: "system", content: lang === 'ru' ? "Ты добрый кот-помощник. Отвечай кратко (2-4 предложения), поддерживающе." : "You are a kind cat-assistant. Answer briefly (2-4 sentences), supportively." }, { role: "user", content: prompt }],
-                temperature: 0.8, max_tokens: 250
-            })
+            body: (messages) => JSON.stringify({ model: "llama3-8b-8192", messages, temperature: 0.8, max_tokens: 350 })
         },
         {
             url: "https://api.lepton.ai/api/v1/chat/completions",
             headers: { "Content-Type": "application/json", "Authorization": "Bearer lep_5kL5kQ5y5x5z5A5B5C5D5E5F5G5H5I5J5K5L5M5N5O5P5Q5R" },
-            body: (prompt, lang) => JSON.stringify({
-                model: "llama3-8b",
-                messages: [{ role: "system", content: lang === 'ru' ? "Ты ласковый кот. Отвечай тепло и коротко." : "You are a gentle cat. Answer warmly and briefly." }, { role: "user", content: prompt }],
-                temperature: 0.8, max_tokens: 250
-            })
+            body: (messages) => JSON.stringify({ model: "llama3-8b", messages, temperature: 0.8, max_tokens: 350 })
         }
     ];
 
-    async function askAI(question, lang) {
+    async function askAI(messages) {
         for (let i = 0; i < API_ENDPOINTS.length; i++) {
             const api = API_ENDPOINTS[i];
             try {
                 const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 8000);
+                const timeout = setTimeout(() => controller.abort(), 10000);
                 const response = await fetch(api.url, {
                     method: "POST",
                     headers: api.headers,
-                    body: api.body(question, lang),
+                    body: api.body(messages),
                     signal: controller.signal
                 });
                 clearTimeout(timeout);
@@ -368,6 +356,7 @@
     let currentNetwork = 'eth', walletConnected = false, walletAddress = '', provider = null, signer = null;
     let isPremium = localStorage.getItem('cat_premium') === 'true';
     let currentCat = 'marshmallow', currentLang = 'ru';
+    let conversationHistory = []; // храним последние 5 сообщений для контекста
     const catNames = { marshmallow: { ru: "Зефирка", en: "Marshmallow" }, ginger: { ru: "Рыжик", en: "Ginger" }, misty: { ru: "Дымка", en: "Misty" } };
 
     // ===================== WEB3 ФУНКЦИИ =====================
@@ -406,8 +395,6 @@
             document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `💰 Отправьте 10 USDT (TRC20) на адрес:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px;">✅ Я оплатил(а)</button>` : `💰 Send 10 USDT (TRC20) to:<br><strong>${TRON_RECIPIENT}</strong><br><br><button onclick="confirmManualPayment()" style="margin-top:10px; padding:8px 16px; background:#4caf50; color:white; border:none; border-radius:20px;">✅ I paid</button>`;
             return;
         }
-        // упрощённая проверка баланса — для демо достаточно активации вручную, но оставим логику списания
-        document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '⏳ Проверка баланса и отправка...' : '⏳ Checking balance and sending...';
         try {
             const web3Provider = new ethers.providers.Web3Provider(provider);
             const signer = web3Provider.getSigner();
@@ -427,7 +414,7 @@
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '✨ Премиум активирован! Теперь я могу поддержать тебя по-настоящему ✨<br><small>Спрашивай о чём угодно 🐱</small>' : '✨ Premium activated! Now I can truly support you ✨<br><small>Ask me anything 🐱</small>';
     }
 
-    // ===================== ОСНОВНЫЕ ФУНКЦИИ =====================
+    // ===================== ДИАЛОГ С ПСИХОЛОГОМ =====================
     async function askCat() {
         const question = document.getElementById('helpInput').value.trim();
         const msgBox = document.getElementById('catMessage');
@@ -439,27 +426,65 @@
             msgBox.innerHTML = currentLang === 'ru' ? '💎 Для того, чтобы я мог поддержать тебя в твоей ситуации, понимая её полностью — оплати премиум доступ. 💎<br><small>Всего 10 USDT на 12 месяцев</small>' : '💎 To fully understand and support you in your situation — please purchase premium access. 💎<br><small>Only 10 USDT for 12 months</small>';
             return;
         }
+
         const activeCat = document.querySelector('.cat-option.active').dataset.cat;
         const catNameDisplay = catNames[activeCat][currentLang];
-        msgBox.innerHTML = currentLang === 'ru' ? `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе по-настоящему</small>` : `Purr... I'm listening carefully<span class='loading-dots'></span><br><small>I really want to help you</small>`;
-        const answer = await askAI(question, currentLang);
+        
+        // Добавляем вопрос пользователя в историю
+        conversationHistory.push({ role: "user", content: question });
+        if (conversationHistory.length > 8) conversationHistory = conversationHistory.slice(-8);
+        
+        msgBox.innerHTML = currentLang === 'ru' ? `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе разобраться</small>` : `Purr... I'm listening carefully<span class='loading-dots'></span><br><small>I want to help you understand</small>`;
+        
+        // Системный промпт — настоящий психолог, который ведёт диалог
+        const systemPrompt = currentLang === 'ru' 
+            ? `Ты — профессиональный психолог в образе нежного кота. Твоя задача: 
+- Внимательно слушать и отражать чувства собеседника
+- Задавать уточняющие вопросы, чтобы помочь человеку глубже понять себя
+- Не давать готовых решений, а направлять к осознанию
+- Проявлять эмпатию, быть мягким, но профессиональным
+- В конце каждого ответа обязательно задавай встречный вопрос, чтобы продолжить диалог
+- Используй кошачьи метафоры (мурчание, лапки, усы) для мягкости, но сохраняй психологическую глубину
+- Отвечай кратко (3-5 предложений) + вопрос.`
+            : `You are a professional psychologist in the form of a gentle cat. Your task:
+- Listen carefully and reflect the client's feelings
+- Ask clarifying questions to help the person understand themselves deeper
+- Don't give ready-made solutions, but guide toward insight
+- Be empathetic, soft, yet professional
+- Always end each response with a follow-up question to continue the dialogue
+- Use cat metaphors (purring, paws, whiskers) for gentleness, but maintain psychological depth
+- Answer briefly (3-5 sentences) + a question.`;
+        
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...conversationHistory
+        ];
+        
+        const answer = await askAI(messages);
+        
         if (answer) {
+            // Добавляем ответ кота в историю
+            conversationHistory.push({ role: "assistant", content: answer });
             msgBox.innerHTML = `${answer}<br><small>🐱 ${catNameDisplay}</small>`;
         } else {
-            // последний fallback — живые тёплые ответы, если все API отказали
             const fallback = currentLang === 'ru' ? [
-                "Я слышу тебя, друг. Иногда просто выговориться — уже облегчение. Ты не один. 💖",
-                "Знаешь, даже в самой сложной ситуации можно найти маленькую опору. Давай поищем её вместе. 🐱",
-                "Спасибо, что делишься. Это смело. Я рядом и очень ценю твоё доверие. 🌸",
-                "Твои чувства — это твой компас. Не бойся их. Мы разберёмся. ✨"
+                "Я слышу тебя, друг. Расскажи подробнее, что сейчас чувствуешь? 💖",
+                "Это важно, что ты делишься. Как бы ты описал(а) это чувство одним словом? 🐱",
+                "Мур… Похоже, это непросто. Что в этой ситуации для тебя самое трудное? 🌸",
+                "Спасибо за доверие. А что бы ты посоветовал(а) другу, окажись он на твоём месте? ✨"
             ] : [
-                "I hear you, friend. Sometimes just speaking it out is already relief. You're not alone. 💖",
-                "You know, even in the hardest situation we can find a small anchor. Let's look for it together. 🐱",
-                "Thank you for sharing. That takes courage. I'm here and I truly appreciate your trust. 🌸",
-                "Your feelings are your compass. Don't be afraid of them. We'll figure this out. ✨"
+                "I hear you, friend. Tell me more — what are you feeling right now? 💖",
+                "It's important that you're sharing this. How would you describe this feeling in one word? 🐱",
+                "Purr… This sounds difficult. What's the hardest part of this situation for you? 🌸",
+                "Thank you for trusting me. What advice would you give a friend if they were in your shoes? ✨"
             ];
-            msgBox.innerHTML = `${fallback[Math.floor(Math.random() * fallback.length)]}<br><small>🐱 ${catNameDisplay}</small>`;
+            const fallbackMsg = fallback[Math.floor(Math.random() * fallback.length)];
+            conversationHistory.push({ role: "assistant", content: fallbackMsg });
+            msgBox.innerHTML = `${fallbackMsg}<br><small>🐱 ${catNameDisplay}</small>`;
         }
+        
+        // Очищаем поле ввода для следующего сообщения
+        document.getElementById('helpInput').value = '';
     }
 
     function petCat() {
@@ -478,6 +503,8 @@
         element.classList.add('active');
         document.getElementById('catName').innerHTML = `✨ ${catNames[catId][currentLang]} ✨`;
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `Мур! Я ${catNames[catId][currentLang]}, и я готов(а) тебя слушать!` : `Purr! I'm ${catNames[catId][currentLang]}, and I'm ready to listen to you!`;
+        // Сбрасываем историю при смене котика (как новая сессия)
+        conversationHistory = [];
     }
 
     function setLanguage(lang) {
@@ -499,6 +526,8 @@
             document.getElementById('walletStatusText').innerHTML = lang === 'ru' ? '🦊 Кошелёк не подключён' : '🦊 Wallet not connected';
         }
         document.getElementById('payButtonWeb3').innerHTML = lang === 'ru' ? '💎 Оплатить 10 USDT' : '💎 Pay 10 USDT';
+        // Сбрасываем историю при смене языка (новая сессия)
+        conversationHistory = [];
     }
 
     const savedLang = localStorage.getItem('cat_lang') || 'ru';
