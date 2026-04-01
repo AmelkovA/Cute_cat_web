@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Cute Cat — Твой пушистый друг</title>
+    <title>Cute Cat — Your Fluffy Friend</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
-        /* ========== СТИЛИ (без изменений, рабочие) ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Quicksand', system-ui, sans-serif;
@@ -216,8 +215,14 @@
             margin-top: 12px;
             width: 100%;
             cursor: pointer;
+            transition: all 0.3s;
         }
-        .help-button:hover { background: #9f73ff; transform: translateY(-2px); }
+        .help-button.active:hover { background: #9f73ff; transform: translateY(-2px); }
+        .help-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #b28dff;
+        }
         .loading-dots { display: inline-block; }
         .loading-dots::after {
             content: '...';
@@ -264,24 +269,24 @@
         <div class="cat-hero-container" id="catHero" onclick="petCat()">
             <svg id="catSvg" viewBox="0 0 400 400"></svg>
         </div>
-        <div class="cat-name" id="catName">✨ Зефирка ✨</div>
+        <div class="cat-name" id="catName">✨ Marshmallow ✨</div>
         <div class="cat-selector">
-            <div class="cat-option active" data-cat="marshmallow" onclick="selectCat('marshmallow', this)">☁️ <span id="catName1">Зефирка</span></div>
-            <div class="cat-option" data-cat="ginger" onclick="selectCat('ginger', this)">🦁 <span id="catName2">Рыжик</span></div>
-            <div class="cat-option" data-cat="misty" onclick="selectCat('misty', this)">🩶 <span id="catName3">Дымка</span></div>
+            <div class="cat-option active" data-cat="marshmallow" onclick="selectCat('marshmallow', this)">☁️ <span id="catName1">Marshmallow</span></div>
+            <div class="cat-option" data-cat="ginger" onclick="selectCat('ginger', this)">🦁 <span id="catName2">Ginger</span></div>
+            <div class="cat-option" data-cat="misty" onclick="selectCat('misty', this)">🩶 <span id="catName3">Misty</span></div>
         </div>
         <div class="thought-bubble">
             <div class="cat-message" id="catMessage">
-                Привет, мой хороший! 👋<br><small>Я здесь, чтобы поддержать тебя</small>
+                Hello there, dear friend! 👋<br><small>I'm here to support you</small>
             </div>
         </div>
-        <button class="pet-button" onclick="petCat()" id="petBtn">🐾 Погладить котика 🐾</button>
+        <button class="pet-button" onclick="petCat()" id="petBtn">🐾 Pet the kitty 🐾</button>
     </div>
 
     <div class="help-section">
-        <div class="help-title" id="helpTitle">💬 Расскажи, что у тебя на душе 💬</div>
-        <input type="text" class="help-input" id="helpInput" placeholder="Напиши, и я тебя поддержу...">
-        <button class="help-button" id="helpButton" onclick="askCat()">✨ Спросить у котика ✨</button>
+        <div class="help-title" id="helpTitle">💬 What's on your mind? 💬</div>
+        <input type="text" class="help-input" id="helpInput" placeholder="Share your thoughts, and I'll listen...">
+        <button class="help-button disabled" id="helpButton" onclick="askCat()" disabled>✨ Ask the kitty ✨</button>
     </div>
 </div>
 
@@ -355,15 +360,33 @@
     // ===================== СОСТОЯНИЕ =====================
     let currentNetwork = 'eth', walletConnected = false, walletAddress = '', provider = null, signer = null;
     let isPremium = localStorage.getItem('cat_premium') === 'true';
-    let currentCat = 'marshmallow', currentLang = 'ru';
-    let conversationHistory = []; // храним последние 5 сообщений для контекста
+    let currentCat = 'marshmallow', currentLang = 'en'; // язык по умолчанию — английский
+    let conversationHistory = [];
+
     const catNames = { marshmallow: { ru: "Зефирка", en: "Marshmallow" }, ginger: { ru: "Рыжик", en: "Ginger" }, misty: { ru: "Дымка", en: "Misty" } };
+
+    // Функция обновления состояния кнопки "Спросить у котика"
+    function updateAskButtonState() {
+        const askBtn = document.getElementById('helpButton');
+        if (walletConnected && isPremium) {
+            askBtn.disabled = false;
+            askBtn.classList.remove('disabled');
+            askBtn.classList.add('active');
+        } else {
+            askBtn.disabled = true;
+            askBtn.classList.remove('active');
+            askBtn.classList.add('disabled');
+        }
+    }
 
     // ===================== WEB3 ФУНКЦИИ =====================
     function getEthereumProvider() { return window.ethereum || window.web3?.currentProvider || null; }
     async function connectMetaMask() {
         const ethProvider = getEthereumProvider();
-        if (!ethProvider) { document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '⚠️ MetaMask не найден!' : '⚠️ MetaMask not found!'; return; }
+        if (!ethProvider) {
+            document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '⚠️ MetaMask не найден!' : '⚠️ MetaMask not found!';
+            return;
+        }
         try {
             const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
             walletAddress = accounts[0]; walletConnected = true; provider = ethProvider;
@@ -374,6 +397,7 @@
             document.getElementById('walletInfo').style.display = 'block';
             document.getElementById('payButtonWeb3').style.display = 'block';
             document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🦊 Кошелёк подключён! Теперь можно оплатить премиум.' : '🦊 Wallet connected! You can now pay for premium.';
+            updateAskButtonState();
         } catch(e) { document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '❌ Ошибка подключения' : '❌ Connection error'; }
     }
     async function connectTrustWallet() { await connectMetaMask(); }
@@ -383,6 +407,7 @@
         document.getElementById('walletInfo').style.display = 'none';
         document.getElementById('payButtonWeb3').style.display = 'none';
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔌 Кошелёк отключён. Подключитесь для оплаты премиума.' : '🔌 Wallet disconnected. Connect to pay for premium.';
+        updateAskButtonState();
     }
     function selectNetworkWeb3(network, element) {
         currentNetwork = network;
@@ -412,31 +437,32 @@
         localStorage.setItem('cat_premium', 'true');
         document.getElementById('premiumBanner').style.display = 'inline-block';
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '✨ Премиум активирован! Теперь я могу поддержать тебя по-настоящему ✨<br><small>Спрашивай о чём угодно 🐱</small>' : '✨ Premium activated! Now I can truly support you ✨<br><small>Ask me anything 🐱</small>';
+        updateAskButtonState();
     }
 
     // ===================== ДИАЛОГ С ПСИХОЛОГОМ =====================
     async function askCat() {
+        if (!walletConnected || !isPremium) {
+            document.getElementById('catMessage').innerHTML = currentLang === 'ru' 
+                ? '🔌 Сначала подключите кошелёк и активируйте премиум, чтобы я мог поддержать тебя полностью.' 
+                : '🔌 Please connect your wallet and activate premium so I can fully support you.';
+            return;
+        }
         const question = document.getElementById('helpInput').value.trim();
         const msgBox = document.getElementById('catMessage');
         if (!question) {
             msgBox.innerHTML = currentLang === 'ru' ? '🐱 Напиши что-нибудь, и я отвечу.<br><small>Я умею слушать и поддерживать</small>' : '🐱 Write something, and I will answer.<br><small>I know how to listen and support</small>';
             return;
         }
-        if (!isPremium) {
-            msgBox.innerHTML = currentLang === 'ru' ? '💎 Для того, чтобы я мог поддержать тебя в твоей ситуации, понимая её полностью — оплати премиум доступ. 💎<br><small>Всего 10 USDT на 12 месяцев</small>' : '💎 To fully understand and support you in your situation — please purchase premium access. 💎<br><small>Only 10 USDT for 12 months</small>';
-            return;
-        }
 
         const activeCat = document.querySelector('.cat-option.active').dataset.cat;
         const catNameDisplay = catNames[activeCat][currentLang];
         
-        // Добавляем вопрос пользователя в историю
         conversationHistory.push({ role: "user", content: question });
         if (conversationHistory.length > 8) conversationHistory = conversationHistory.slice(-8);
         
         msgBox.innerHTML = currentLang === 'ru' ? `Мурр... я слушаю тебя внимательно<span class='loading-dots'></span><br><small>Я хочу помочь тебе разобраться</small>` : `Purr... I'm listening carefully<span class='loading-dots'></span><br><small>I want to help you understand</small>`;
         
-        // Системный промпт — настоящий психолог, который ведёт диалог
         const systemPrompt = currentLang === 'ru' 
             ? `Ты — профессиональный психолог в образе нежного кота. Твоя задача: 
 - Внимательно слушать и отражать чувства собеседника
@@ -463,7 +489,6 @@
         const answer = await askAI(messages);
         
         if (answer) {
-            // Добавляем ответ кота в историю
             conversationHistory.push({ role: "assistant", content: answer });
             msgBox.innerHTML = `${answer}<br><small>🐱 ${catNameDisplay}</small>`;
         } else {
@@ -482,8 +507,6 @@
             conversationHistory.push({ role: "assistant", content: fallbackMsg });
             msgBox.innerHTML = `${fallbackMsg}<br><small>🐱 ${catNameDisplay}</small>`;
         }
-        
-        // Очищаем поле ввода для следующего сообщения
         document.getElementById('helpInput').value = '';
     }
 
@@ -503,7 +526,6 @@
         element.classList.add('active');
         document.getElementById('catName').innerHTML = `✨ ${catNames[catId][currentLang]} ✨`;
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `Мур! Я ${catNames[catId][currentLang]}, и я готов(а) тебя слушать!` : `Purr! I'm ${catNames[catId][currentLang]}, and I'm ready to listen to you!`;
-        // Сбрасываем историю при смене котика (как новая сессия)
         conversationHistory = [];
     }
 
@@ -526,14 +548,16 @@
             document.getElementById('walletStatusText').innerHTML = lang === 'ru' ? '🦊 Кошелёк не подключён' : '🦊 Wallet not connected';
         }
         document.getElementById('payButtonWeb3').innerHTML = lang === 'ru' ? '💎 Оплатить 10 USDT' : '💎 Pay 10 USDT';
-        // Сбрасываем историю при смене языка (новая сессия)
         conversationHistory = [];
+        updateAskButtonState();
     }
 
-    const savedLang = localStorage.getItem('cat_lang') || 'ru';
+    // Инициализация
+    const savedLang = localStorage.getItem('cat_lang') || 'en';
     setLanguage(savedLang);
     document.getElementById('catSvg').innerHTML = catSvgs.marshmallow;
     if (isPremium) document.getElementById('premiumBanner').style.display = 'inline-block';
+    updateAskButtonState();
 </script>
 </body>
 </html>
