@@ -12,6 +12,30 @@
             background: linear-gradient(135deg, #fff9fb 0%, #fff0f3 50%, #ffe9ef 100%);
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+        }
+        /* Кнопка документации — вне приложения, в углу экрана */
+        .docs-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            border: 2px solid #ffd1dc;
+            border-radius: 40px;
+            padding: 8px 20px;
+            font-weight: 600;
+            color: #ff8da1;
+            text-decoration: none;
+            font-size: 14px;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .docs-button:hover {
+            background: #fff0f3;
+            border-color: #ff8da1;
+            transform: translateY(-2px);
         }
         .app-container {
             max-width: 800px;
@@ -239,61 +263,75 @@
             .cat-message { font-size: 16px; }
             .thought-bubble::before { display: none; }
             .language-switch { top: 15px; right: 15px; }
+            .docs-button { top: 15px; right: 15px; font-size: 12px; padding: 6px 14px; }
         }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <div class="language-switch">
-        <button class="lang-btn" id="langEn" onclick="setLanguage('en')">EN</button>
-        <button class="lang-btn" id="langRu" onclick="setLanguage('ru')">RU</button>
-    </div>
+    <!-- Кнопка документации вне приложения -->
+    <a href="#" id="docsButton" class="docs-button" target="_blank" rel="noopener noreferrer">📘 Documentation</a>
 
-    <div id="premiumBanner" class="premium-banner" style="display: none;">✨ PREMIUM ACTIVE ✨</div>
+    <div class="app-container">
+        <div class="language-switch">
+            <button class="lang-btn" id="langEn" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" id="langRu" onclick="setLanguage('ru')">RU</button>
+        </div>
 
-    <div class="web3-section">
-        <div class="wallet-status" id="walletStatus">
-            <span id="walletStatusText">🦊 Wallet not connected</span>
-            <div>
-                <button class="wallet-button" onclick="connectMetaMask()">🦊 MetaMask</button>
-                <button class="wallet-button" onclick="connectTrustWallet()">📱 Trust Wallet</button>
+        <div id="premiumBanner" class="premium-banner" style="display: none;">✨ PREMIUM ACTIVE ✨</div>
+
+        <div class="web3-section">
+            <div class="wallet-status" id="walletStatus">
+                <span id="walletStatusText">🦊 Wallet not connected</span>
+                <div>
+                    <button class="wallet-button" onclick="connectMetaMask()">🦊 MetaMask</button>
+                    <button class="wallet-button" onclick="connectTrustWallet()">📱 Trust Wallet</button>
+                </div>
             </div>
-        </div>
-        <div id="walletInfo" style="display: none; margin-bottom: 15px;"></div>
-        <div class="network-buttons">
-            <button class="network-btn active" onclick="selectNetworkWeb3('eth', this)">💎 Ethereum</button>
-            <button class="network-btn" onclick="selectNetworkWeb3('bsc', this)">🔷 BSC</button>
-            <button class="network-btn" onclick="selectNetworkWeb3('tron', this)">🌐 TRON</button>
-        </div>
-        <button class="pay-button-web3" id="payButtonWeb3" onclick="makePaymentWeb3()" style="display: none;">💎 Pay 10 USDT</button>
-    </div>
-
-    <div class="hero-section">
-        <div class="cat-hero-container" id="catHero" onclick="petCat()">
-            <svg id="catSvg" viewBox="0 0 400 400"></svg>
-        </div>
-        <div class="cat-name" id="catName">✨ Marshmallow ✨</div>
-        <div class="cat-selector">
-            <div class="cat-option active" data-cat="marshmallow" onclick="selectCat('marshmallow', this)">☁️ <span id="catName1">Marshmallow</span></div>
-            <div class="cat-option" data-cat="ginger" onclick="selectCat('ginger', this)">🦁 <span id="catName2">Ginger</span></div>
-            <div class="cat-option" data-cat="misty" onclick="selectCat('misty', this)">🩶 <span id="catName3">Misty</span></div>
-        </div>
-        <div class="thought-bubble">
-            <div class="cat-message" id="catMessage">
-                Hello there, dear friend! 👋<br><small>I'm here to support you</small>
+            <div id="walletInfo" style="display: none; margin-bottom: 15px;"></div>
+            <div class="network-buttons">
+                <button class="network-btn active" onclick="selectNetworkWeb3('eth', this)">💎 Ethereum</button>
+                <button class="network-btn" onclick="selectNetworkWeb3('bsc', this)">🔷 BSC</button>
+                <button class="network-btn" onclick="selectNetworkWeb3('tron', this)">🌐 TRON</button>
             </div>
+            <button class="pay-button-web3" id="payButtonWeb3" onclick="makePaymentWeb3()" style="display: none;">💎 Pay 10 USDT</button>
         </div>
-        <button class="pet-button" onclick="petCat()" id="petBtn">🐾 Pet the kitty 🐾</button>
-    </div>
 
-    <div class="help-section">
-        <div class="help-title" id="helpTitle">💬 What's on your mind? 💬</div>
-        <input type="text" class="help-input" id="helpInput" placeholder="Share your thoughts, and I'll listen...">
-        <button class="help-button" id="helpButton" onclick="askCat()" disabled>✨ Ask the kitty ✨</button>
+        <div class="hero-section">
+            <div class="cat-hero-container" id="catHero" onclick="petCat()">
+                <svg id="catSvg" viewBox="0 0 400 400"></svg>
+            </div>
+            <div class="cat-name" id="catName">✨ Marshmallow ✨</div>
+            <div class="cat-selector">
+                <div class="cat-option active" data-cat="marshmallow" onclick="selectCat('marshmallow', this)">☁️ <span id="catName1">Marshmallow</span></div>
+                <div class="cat-option" data-cat="ginger" onclick="selectCat('ginger', this)">🦁 <span id="catName2">Ginger</span></div>
+                <div class="cat-option" data-cat="misty" onclick="selectCat('misty', this)">🩶 <span id="catName3">Misty</span></div>
+            </div>
+            <div class="thought-bubble">
+                <div class="cat-message" id="catMessage">
+                    Hello there, dear friend! 👋<br><small>I'm here to support you</small>
+                </div>
+            </div>
+            <button class="pet-button" onclick="petCat()" id="petBtn">🐾 Pet the kitty 🐾</button>
+        </div>
+
+        <div class="help-section">
+            <div class="help-title" id="helpTitle">💬 What's on your mind? 💬</div>
+            <input type="text" class="help-input" id="helpInput" placeholder="Share your thoughts, and I'll listen...">
+            <button class="help-button" id="helpButton" onclick="askCat()" disabled>✨ Ask the kitty ✨</button>
+        </div>
     </div>
-</div>
 
 <script>
+    // ===================== ДОКУМЕНТАЦИЯ (ссылки по языку) =====================
+    const DOCS_URLS = {
+        en: "https://docs.google.com/document/d/17BvxahyD3jrXshnyJdMz9EubYIiiOvqz/edit?usp=drive_link",
+        ru: "https://docs.google.com/document/d/1qq_pRKscok_0esr8C-loTdw72jg7DLBy/edit?usp=drive_link"
+    };
+    function updateDocsLink(lang) {
+        const btn = document.getElementById('docsButton');
+        if (btn) btn.href = DOCS_URLS[lang] || DOCS_URLS.en;
+    }
+
     // ===================== КОТИКИ (SVG) =====================
     const catSvgs = {
         marshmallow: `<svg viewBox="0 0 400 400"><defs><radialGradient id="furGradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff8fa"/><stop offset="100%" stop-color="#ffeef2"/></radialGradient><filter id="softShadow" x="-0.02" y="-0.02" width="1.04" height="1.04"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="2"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M120 100 L80 40 L140 80 Z" fill="#fce4ec" stroke="#ffc0d0" stroke-width="3"/><path d="M280 100 L320 40 L260 80 Z" fill="#fce4ec" stroke="#ffc0d0" stroke-width="3"/><ellipse cx="200" cy="210" rx="135" ry="125" fill="url(#furGradient)" stroke="#ffc0d0" stroke-width="3" filter="url(#softShadow)"/><g class="cat-eyes"><ellipse cx="150" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><ellipse cx="250" cy="185" rx="16" ry="22" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><circle cx="154" cy="190" r="7" fill="#2c2c2c"/><circle cx="254" cy="190" r="7" fill="#2c2c2c"/><circle cx="151" cy="187" r="2.5" fill="white"/><circle cx="251" cy="187" r="2.5" fill="white"/></g><ellipse cx="200" cy="215" rx="18" ry="14" fill="#ffb7b2" stroke="#ff8da1" stroke-width="2"/><path d="M180 235 Q200 260 220 235" fill="none" stroke="#ff8da1" stroke-width="6" stroke-linecap="round"/><circle cx="174" cy="241" r="5" fill="#ffb7b2" opacity="0.5"/><circle cx="226" cy="241" r="5" fill="#ffb7b2" opacity="0.5"/><path d="M120 210 L70 205" stroke="#b0a0a0" stroke-width="2"/><path d="M120 220 L70 220" stroke="#b0a0a0" stroke-width="2"/><path d="M120 230 L70 235" stroke="#b0a0a0" stroke-width="2"/><path d="M280 210 L330 205" stroke="#b0a0a0" stroke-width="2"/><path d="M280 220 L330 220" stroke="#b0a0a0" stroke-width="2"/><path d="M280 230 L330 235" stroke="#b0a0a0" stroke-width="2"/><ellipse cx="130" cy="215" rx="20" ry="12" fill="#ffebef" opacity="0.7"/><ellipse cx="270" cy="215" rx="20" ry="12" fill="#ffebef" opacity="0.7"/><path d="M90 270 L70 285 L85 300 L105 285 Z" fill="#ffe4e1" stroke="#ffc0d0" stroke-width="2"/><path d="M310 330 Q330 320 335 300 Q340 280 325 285 Q315 290 310 310 Z" fill="#ffe4e1" stroke="#ffc0d0" stroke-width="2"/></svg>`,
@@ -380,6 +418,12 @@
 
     const catNames = { marshmallow: { ru: "Зефирка", en: "Marshmallow" }, ginger: { ru: "Рыжик", en: "Ginger" }, misty: { ru: "Дымка", en: "Misty" } };
 
+    function updatePremiumBanner() {
+        const banner = document.getElementById('premiumBanner');
+        if (isPremium) banner.style.display = 'inline-block';
+        else banner.style.display = 'none';
+    }
+
     function updateAskButtonState() {
         const askBtn = document.getElementById('helpButton');
         if (walletConnected && isPremium) {
@@ -432,6 +476,29 @@
         element.classList.add('active');
     }
     
+    // Человеческая обработка ошибок оплаты
+    function formatPaymentError(error) {
+        const errorStr = String(error?.message || error || "").toLowerCase();
+        if (errorStr.includes("insufficient funds")) {
+            return currentLang === 'ru' 
+                ? "❌ Недостаточно средств для оплаты. На вашем кошельке недостаточно ETH/BNB для газа или USDT/USDC."
+                : "❌ Insufficient funds for payment. Your wallet doesn't have enough ETH/BNB for gas or USDT/USDC.";
+        }
+        if (errorStr.includes("call revert exception") || errorStr.includes("execution reverted")) {
+            return currentLang === 'ru'
+                ? "❌ Транзакция отклонена контрактом. Возможно, у вас недостаточно USDT/USDC или неправильно выбрана сеть."
+                : "❌ Transaction was reverted by the contract. You might not have enough USDT/USDC or the network is incorrect.";
+        }
+        if (errorStr.includes("user rejected")) {
+            return currentLang === 'ru'
+                ? "❌ Вы отклонили транзакцию в кошельке."
+                : "❌ You rejected the transaction in your wallet.";
+        }
+        return currentLang === 'ru'
+            ? `❌ Ошибка оплаты: ${error?.message || error || 'Неизвестная ошибка. Попробуйте позже.'}`
+            : `❌ Payment error: ${error?.message || error || 'Unknown error. Please try again later.'}`;
+    }
+    
     async function makePaymentWeb3() {
         if (!walletConnected) {
             document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '🔌 Сначала подключите кошелёк!' : '🔌 Please connect your wallet first!';
@@ -452,7 +519,10 @@
             const tx = await contract.transfer(RECIPIENT_ADDRESS, amount);
             await tx.wait();
             activatePremium();
-        } catch(e) { document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? `❌ Ошибка: ${e.message || 'Транзакция отклонена'}` : `❌ Error: ${e.message || 'Transaction rejected'}`; }
+        } catch(e) {
+            const friendlyMsg = formatPaymentError(e);
+            document.getElementById('catMessage').innerHTML = friendlyMsg;
+        }
     }
     
     function confirmManualPayment() { activatePremium(); }
@@ -460,7 +530,7 @@
     function activatePremium() {
         isPremium = true;
         localStorage.setItem('cat_premium', 'true');
-        document.getElementById('premiumBanner').style.display = 'inline-block';
+        updatePremiumBanner();
         document.getElementById('catMessage').innerHTML = currentLang === 'ru' ? '✨ Премиум активирован! Теперь я могу поддержать тебя по-настоящему ✨<br><small>Спрашивай о чём угодно 🐱</small>' : '✨ Premium activated! Now I can truly support you ✨<br><small>Ask me anything 🐱</small>';
         updateAskButtonState();
     }
@@ -573,6 +643,7 @@
             document.getElementById('walletStatusText').innerHTML = lang === 'ru' ? '🦊 Кошелёк не подключён' : '🦊 Wallet not connected';
         }
         document.getElementById('payButtonWeb3').innerHTML = lang === 'ru' ? '💎 Оплатить 10 USDT' : '💎 Pay 10 USDT';
+        updateDocsLink(lang);
         conversationHistory = [];
         updateAskButtonState();
     }
@@ -581,7 +652,7 @@
     const savedLang = localStorage.getItem('cat_lang') || 'en';
     setLanguage(savedLang);
     document.getElementById('catSvg').innerHTML = catSvgs.marshmallow;
-    if (isPremium) document.getElementById('premiumBanner').style.display = 'inline-block';
+    updatePremiumBanner();
     updateAskButtonState();
 </script>
 </body>
