@@ -336,19 +336,21 @@
     const RECIPIENT_ADDRESS = "0x8C8fa7F22b88845c0Ec54BAF2d3d8d82BDd4C84b";
     const TRON_RECIPIENT = "TWp92WuYAEZzu3ur43ZhZEvMBVd65hJMmA";
     
+    // Добавляем RPC для проверки баланса
     const NETWORKS = {
-        eth: { name: "Ethereum", chainId: "0x1", chainName: "Ethereum Mainnet", usdtAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7", usdcAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6, recipient: RECIPIENT_ADDRESS },
-        bsc: { name: "BSC", chainId: "0x38", chainName: "BNB Smart Chain", usdtAddress: "0x55d398326f99059fF775485246999027B3197955", usdcAddress: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", decimals: 18, recipient: RECIPIENT_ADDRESS },
+        eth: { name: "Ethereum", rpcUrl: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", usdtAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7", usdcAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6, recipient: RECIPIENT_ADDRESS },
+        bsc: { name: "BSC", rpcUrl: "https://bsc-dataseed.binance.org", usdtAddress: "0x55d398326f99059fF775485246999027B3197955", usdcAddress: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", decimals: 18, recipient: RECIPIENT_ADDRESS },
         tron: { name: "TRON", address: TRON_RECIPIENT }
     };
 
-    // ===================== API =====================
+    // ===================== API (УСКОРЕННАЯ ВЕРСИЯ) =====================
     const OPENROUTER_KEY = "sk-or-v1-2c3e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f1g2h";
 
     async function askAI(messages) {
         try {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 15000);
+            const timeout = setTimeout(() => controller.abort(), 10000);
+            
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -358,38 +360,19 @@
                     "X-Title": "Cute Cat"
                 },
                 body: JSON.stringify({
-                    model: "deepseek/deepseek-r1:free",
+                    model: "mistralai/mistral-7b-instruct:free",
                     messages: messages,
-                    temperature: 0.8,
-                    max_tokens: 400
+                    temperature: 0.7,
+                    max_tokens: 200
                 }),
                 signal: controller.signal
             });
             clearTimeout(timeout);
+            
             if (response.ok) {
                 const data = await response.json();
                 let answer = data?.choices?.[0]?.message?.content;
-                if (answer && answer.trim().length > 15) return answer.trim();
-            }
-            const fallbackResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${OPENROUTER_KEY}`,
-                    "HTTP-Referer": "https://amelkova.github.io/Cute_cat_web/",
-                    "X-Title": "Cute Cat"
-                },
-                body: JSON.stringify({
-                    model: "openrouter/free",
-                    messages: messages,
-                    temperature: 0.8,
-                    max_tokens: 400
-                })
-            });
-            if (fallbackResponse.ok) {
-                const data = await fallbackResponse.json();
-                let answer = data?.choices?.[0]?.message?.content;
-                if (answer && answer.trim().length > 15) return answer.trim();
+                if (answer && answer.trim().length > 10) return answer.trim();
             }
             return null;
         } catch (e) {
@@ -447,16 +430,6 @@
         }
     }
     
-    function disconnectWallet() {
-        walletConnected = false;
-        walletAddress = '';
-        provider = null;
-        signer = null;
-        document.getElementById('walletStatusText').innerHTML = currentLang === 'ru' ? '🦊 Кошелёк не подключён' : '🦊 Wallet not connected';
-        document.getElementById('walletInfo').style.display = 'none';
-        checkPremiumStatus();
-    }
-
     // Проверка баланса в разных сетях
     async function checkBalanceInAllNetworks() {
         const networks = ['eth', 'bsc'];
@@ -540,19 +513,16 @@
             return;
         }
         
-        // Если кошелёк не подключён — подключаем
         if (!walletConnected) {
             await connectWallet();
             if (!walletConnected) return;
         }
         
-        // Если премиум не активен — начинаем процесс оплаты
         if (!isPremium) {
             await makePayment();
             return;
         }
         
-        // Премиум активен — отвечаем через AI
         const activeCat = document.querySelector('.cat-option.active').dataset.cat;
         const catNameDisplay = catNames[activeCat][currentLang];
         
@@ -567,10 +537,9 @@
 - Listen carefully and reflect the client's feelings with empathy
 - Ask thoughtful, open-ended questions to help them explore their thoughts deeper
 - Never give generic advice — tailor your responses to what they've shared
-- Keep responses warm, concise (3-5 sentences), and always end with a question to continue the dialogue
+- Keep responses warm, concise (2-3 sentences), and always end with a question to continue the dialogue
 - Use soft cat metaphors (purring, paws, whiskers) naturally, but maintain psychological depth
-- Draw from the conversation history to make your responses feel personal and connected
-- Be genuine, supportive, and help them gain insight, not just feel better temporarily`;
+- Be genuine, supportive, and help them gain insight`;
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -579,20 +548,18 @@
         
         const answer = await askAI(messages);
         
-        if (answer && answer.length > 15) {
+        if (answer && answer.length > 10) {
             conversationHistory.push({ role: "assistant", content: answer });
             msgBox.innerHTML = `${answer}<br><small>🐱 ${catNameDisplay}</small>`;
         } else {
             const fallback = currentLang === 'ru' ? [
                 "Я слышу тебя, друг. Расскажи подробнее, что сейчас чувствуешь? 💖",
                 "Это важно, что ты делишься. Как бы ты описал(а) это чувство одним словом? 🐱",
-                "Мур… Похоже, это непросто. Что в этой ситуации для тебя самое трудное? 🌸",
-                "Спасибо за доверие. А что бы ты посоветовал(а) другу, окажись он на твоём месте? ✨"
+                "Мур… Похоже, это непросто. Что в этой ситуации для тебя самое трудное? 🌸"
             ] : [
                 "I hear you, friend. Tell me more — what are you feeling right now? 💖",
                 "It's important that you're sharing this. How would you describe this feeling in one word? 🐱",
-                "Purr… This sounds difficult. What's the hardest part of this situation for you? 🌸",
-                "Thank you for trusting me. What advice would you give a friend if they were in your shoes? ✨"
+                "Purr… This sounds difficult. What's the hardest part of this situation for you? 🌸"
             ];
             const fallbackMsg = fallback[Math.floor(Math.random() * fallback.length)];
             conversationHistory.push({ role: "assistant", content: fallbackMsg });
@@ -652,7 +619,6 @@
     setLanguage(savedLang);
     document.getElementById('catSvg').innerHTML = catSvgs.marshmallow;
     
-    // Проверяем премиум при загрузке
     if (premiumWallet) {
         // Ждём подключения кошелька
     }
